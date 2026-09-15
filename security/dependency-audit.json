@@ -1,0 +1,1769 @@
+{
+  "checkedAt": "2026-09-15T11:19:56.250477+00:00",
+  "scope": "Resolved Maven package/version pairs in project configurations and plugin buildscript; two Gradle advisories reviewed separately. Not a binary, JDK, SDK or shaded-library audit.",
+  "source": "https://api.osv.dev/v1/querybatch",
+  "before": {
+    "vulnerablePackageVersions": 21,
+    "distinctAdvisories": 49,
+    "findings": [
+      {
+        "name": "com.google.protobuf:protobuf-java",
+        "version": "3.24.4",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-driver-instrumentation",
+          ":app:project:_internal-unified-test-platform-android-test-plugin",
+          ":app:project:_internal-unified-test-platform-core",
+          ":app:project:_internal-unified-test-platform-launcher"
+        ],
+        "advisories": [
+          "GHSA-735f-pc8j-v9w8"
+        ]
+      },
+      {
+        "name": "com.google.protobuf:protobuf-kotlin",
+        "version": "3.24.4",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-device-provider-ddmlib",
+          ":app:project:_internal-unified-test-platform-android-driver-instrumentation",
+          ":app:project:_internal-unified-test-platform-android-test-plugin",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-additional-test-output",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-apk-installer",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-coverage",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-device-info",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-logcat",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-core",
+          ":app:project:_internal-unified-test-platform-launcher"
+        ],
+        "advisories": [
+          "GHSA-735f-pc8j-v9w8"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec-http2",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-563q-j3cm-6jxm",
+          "GHSA-5x3r-wrvg-rp6q",
+          "GHSA-93wv-jw9v-4972",
+          "GHSA-c2gf-v879-257j",
+          "GHSA-c69g-56f8-xwqj",
+          "GHSA-f6hv-jmp6-3vwv",
+          "GHSA-prj3-ccx8-p6x4",
+          "GHSA-w9fj-cfpg-grvv"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec-http2",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-563q-j3cm-6jxm",
+          "GHSA-5x3r-wrvg-rp6q",
+          "GHSA-93wv-jw9v-4972",
+          "GHSA-c2gf-v879-257j",
+          "GHSA-c69g-56f8-xwqj",
+          "GHSA-f6hv-jmp6-3vwv",
+          "GHSA-prj3-ccx8-p6x4",
+          "GHSA-w9fj-cfpg-grvv",
+          "GHSA-xpw8-rcwv-8f8p"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec-http",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-38f8-5428-x5cv",
+          "GHSA-4mp9-239f-g9hg",
+          "GHSA-57rv-r2g8-2cj3",
+          "GHSA-6cqp-g7gg-8hr5",
+          "GHSA-6jqx-86gh-f27w",
+          "GHSA-84h7-rjj3-6jx4",
+          "GHSA-8c42-7qj2-3j46",
+          "GHSA-f6hv-jmp6-3vwv",
+          "GHSA-fghv-69vj-qj49",
+          "GHSA-gcjf-9mgh-3p7g",
+          "GHSA-hvcg-qmg6-jm4c",
+          "GHSA-jppx-w49h-x2qq",
+          "GHSA-m4cv-j2px-7723",
+          "GHSA-mvh2-crg5-v77c",
+          "GHSA-pwqr-wmgm-9rr8",
+          "GHSA-q4f6-jm68-57ww",
+          "GHSA-v8h7-rr48-vmmv",
+          "GHSA-xxqh-mfjm-7mv9"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec-http",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-38f8-5428-x5cv",
+          "GHSA-4mp9-239f-g9hg",
+          "GHSA-57rv-r2g8-2cj3",
+          "GHSA-5jpm-x58v-624v",
+          "GHSA-6cqp-g7gg-8hr5",
+          "GHSA-6jqx-86gh-f27w",
+          "GHSA-84h7-rjj3-6jx4",
+          "GHSA-8c42-7qj2-3j46",
+          "GHSA-f6hv-jmp6-3vwv",
+          "GHSA-fghv-69vj-qj49",
+          "GHSA-gcjf-9mgh-3p7g",
+          "GHSA-hvcg-qmg6-jm4c",
+          "GHSA-jppx-w49h-x2qq",
+          "GHSA-m4cv-j2px-7723",
+          "GHSA-mvh2-crg5-v77c",
+          "GHSA-pwqr-wmgm-9rr8",
+          "GHSA-q4f6-jm68-57ww",
+          "GHSA-v8h7-rr48-vmmv",
+          "GHSA-xxqh-mfjm-7mv9"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-3p8m-j85q-pgmj",
+          "GHSA-558v-64gr-wgg4",
+          "GHSA-mj4r-2hfc-f8p6"
+        ]
+      },
+      {
+        "name": "io.netty:netty-codec",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-3p8m-j85q-pgmj",
+          "GHSA-558v-64gr-wgg4",
+          "GHSA-mj4r-2hfc-f8p6"
+        ]
+      },
+      {
+        "name": "io.netty:netty-common",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-389x-839f-4rhx",
+          "GHSA-xq3w-v528-46rv"
+        ]
+      },
+      {
+        "name": "io.netty:netty-common",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-389x-839f-4rhx",
+          "GHSA-xq3w-v528-46rv"
+        ]
+      },
+      {
+        "name": "io.netty:netty-handler-proxy",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-45q3-82m4-75jr"
+        ]
+      },
+      {
+        "name": "io.netty:netty-handler-proxy",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-45q3-82m4-75jr"
+        ]
+      },
+      {
+        "name": "io.netty:netty-handler",
+        "version": "4.1.110.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+          ":app:project:_internal-unified-test-platform-android-test-plugin-result-listener-gradle",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-3qp7-7mw8-wx86",
+          "GHSA-4g8c-wm8x-jfhw",
+          "GHSA-c4c3-7fpv-j4q5",
+          "GHSA-c653-97m9-rcg9",
+          "GHSA-fccg-mwvh-qqg4",
+          "GHSA-x4gw-5cx5-pgmh"
+        ]
+      },
+      {
+        "name": "io.netty:netty-handler",
+        "version": "4.1.93.Final",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-core"
+        ],
+        "advisories": [
+          "GHSA-3qp7-7mw8-wx86",
+          "GHSA-4g8c-wm8x-jfhw",
+          "GHSA-6mjq-h674-j845",
+          "GHSA-c4c3-7fpv-j4q5",
+          "GHSA-c653-97m9-rcg9",
+          "GHSA-fccg-mwvh-qqg4",
+          "GHSA-x4gw-5cx5-pgmh"
+        ]
+      },
+      {
+        "name": "org.apache.commons:commons-lang3",
+        "version": "3.16.0",
+        "scopes": [
+          "::buildscript:classpath",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-j288-q9x7-2f5v"
+        ]
+      },
+      {
+        "name": "org.apache.httpcomponents:httpclient",
+        "version": "4.5.6",
+        "scopes": [
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-7r82-7xv7-xcpj"
+        ]
+      },
+      {
+        "name": "org.bitbucket.b_c:jose4j",
+        "version": "0.9.5",
+        "scopes": [
+          "::buildscript:classpath"
+        ],
+        "advisories": [
+          "GHSA-3677-xxcr-wjqv"
+        ]
+      },
+      {
+        "name": "org.bouncycastle:bcpkix-jdk18on",
+        "version": "1.79",
+        "scopes": [
+          "::buildscript:classpath",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-wg6q-6289-32hp"
+        ]
+      },
+      {
+        "name": "org.bouncycastle:bcprov-jdk18on",
+        "version": "1.79",
+        "scopes": [
+          "::buildscript:classpath",
+          ":app:project:_internal-unified-test-platform-gradle-work-action"
+        ],
+        "advisories": [
+          "GHSA-574f-3g2m-x479",
+          "GHSA-c3fc-8qff-9hwx"
+        ]
+      },
+      {
+        "name": "org.jdom:jdom2",
+        "version": "2.0.6",
+        "scopes": [
+          "::buildscript:classpath"
+        ],
+        "advisories": [
+          "GHSA-2363-cqg2-863c"
+        ]
+      },
+      {
+        "name": "org.jetbrains.kotlin:kotlin-gradle-plugin",
+        "version": "2.2.10",
+        "scopes": [
+          "::buildscript:classpath"
+        ],
+        "advisories": [
+          "GHSA-r937-wjx7-w2jp"
+        ]
+      }
+    ]
+  },
+  "after": {
+    "checkedAt": "2026-09-15T11:19:56.250477+00:00",
+    "source": "https://api.osv.dev/v1/querybatch",
+    "packagesChecked": 339,
+    "configurations": [
+      "::buildscript:classpath",
+      ":app:project:androidApis",
+      ":app:project:androidJdkImage",
+      ":app:project:androidLintTool",
+      ":app:project:androidTestUtil",
+      ":app:project:composeMappingProducerClasspath",
+      ":app:project:coreLibraryDesugaring",
+      ":app:project:debugAndroidTestAnnotationProcessorClasspath",
+      ":app:project:debugAndroidTestCompileClasspath",
+      ":app:project:debugAndroidTestImplementationDependenciesMetadata",
+      ":app:project:debugAndroidTestLintChecksClasspath",
+      ":app:project:debugAndroidTestRuntimeClasspath",
+      ":app:project:debugAnnotationProcessorClasspath",
+      ":app:project:debugCompileClasspath",
+      ":app:project:debugImplementationDependenciesMetadata",
+      ":app:project:debugLintChecksClasspath",
+      ":app:project:debugReverseMetadataValues",
+      ":app:project:debugRuntimeClasspath",
+      ":app:project:debugUnitTestAnnotationProcessorClasspath",
+      ":app:project:debugUnitTestCompileClasspath",
+      ":app:project:debugUnitTestImplementationDependenciesMetadata",
+      ":app:project:debugUnitTestLintChecksClasspath",
+      ":app:project:debugUnitTestRuntimeClasspath",
+      ":app:project:kotlin-extension",
+      ":app:project:kotlinAbiValidationCompatClasspath",
+      ":app:project:kotlinBuildToolsApiClasspath",
+      ":app:project:kotlinCompilerClasspath",
+      ":app:project:kotlinCompilerPluginClasspath",
+      ":app:project:kotlinCompilerPluginClasspathDebug",
+      ":app:project:kotlinCompilerPluginClasspathDebugAndroidTest",
+      ":app:project:kotlinCompilerPluginClasspathDebugUnitTest",
+      ":app:project:kotlinCompilerPluginClasspathRelease",
+      ":app:project:lintChecks",
+      ":app:project:lintPublish",
+      ":app:project:releaseAnnotationProcessorClasspath",
+      ":app:project:releaseCompileClasspath",
+      ":app:project:releaseImplementationDependenciesMetadata",
+      ":app:project:releaseLintChecksClasspath",
+      ":app:project:releaseReverseMetadataValues",
+      ":app:project:releaseRuntimeClasspath",
+      ":app:project:unified-test-platform-android-device-provider-ddmlib",
+      ":app:project:unified-test-platform-android-driver-instrumentation",
+      ":app:project:unified-test-platform-android-test-plugin",
+      ":app:project:unified-test-platform-android-test-plugin-host-additional-test-output",
+      ":app:project:unified-test-platform-android-test-plugin-host-apk-installer",
+      ":app:project:unified-test-platform-android-test-plugin-host-coverage",
+      ":app:project:unified-test-platform-android-test-plugin-host-device-info",
+      ":app:project:unified-test-platform-android-test-plugin-host-emulator-control",
+      ":app:project:unified-test-platform-android-test-plugin-host-logcat",
+      ":app:project:unified-test-platform-android-test-plugin-result-listener-gradle",
+      ":app:project:unified-test-platform-core",
+      ":app:project:unified-test-platform-gradle-work-action",
+      ":app:project:unified-test-platform-launcher",
+      ":app:buildscript:classpath"
+    ],
+    "gradle": "9.7.1",
+    "gradleAdvisorySources": [
+      "https://github.com/gradle/gradle/security/advisories/GHSA-mqwm-5m85-gmcv",
+      "https://github.com/gradle/gradle/security/advisories/GHSA-w78c-w6vf-rw82"
+    ],
+    "positiveControl": [
+      "GHSA-4g9r-vxhx-9pgx",
+      "GHSA-7hfm-57qf-j43q",
+      "GHSA-crv7-7245-f45f",
+      "GHSA-mc84-pj99-q6hh",
+      "GHSA-xqfj-vm6h-2x34"
+    ],
+    "findings": []
+  },
+  "resolvedPackages": [
+    {
+      "name": "androidx.activity:activity-compose",
+      "version": "1.11.0"
+    },
+    {
+      "name": "androidx.activity:activity-ktx",
+      "version": "1.11.0"
+    },
+    {
+      "name": "androidx.activity:activity",
+      "version": "1.11.0"
+    },
+    {
+      "name": "androidx.annotation:annotation-experimental",
+      "version": "1.4.1"
+    },
+    {
+      "name": "androidx.annotation:annotation-jvm",
+      "version": "1.9.1"
+    },
+    {
+      "name": "androidx.annotation:annotation",
+      "version": "1.9.1"
+    },
+    {
+      "name": "androidx.arch.core:core-common",
+      "version": "2.2.0"
+    },
+    {
+      "name": "androidx.arch.core:core-runtime",
+      "version": "2.2.0"
+    },
+    {
+      "name": "androidx.autofill:autofill",
+      "version": "1.0.0"
+    },
+    {
+      "name": "androidx.collection:collection-jvm",
+      "version": "1.5.0"
+    },
+    {
+      "name": "androidx.collection:collection-ktx",
+      "version": "1.5.0"
+    },
+    {
+      "name": "androidx.collection:collection",
+      "version": "1.5.0"
+    },
+    {
+      "name": "androidx.compose.animation:animation-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.animation:animation-core-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.animation:animation-core",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.animation:animation",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.foundation:foundation-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.foundation:foundation-layout-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.foundation:foundation-layout",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.foundation:foundation",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.material3:material3-android",
+      "version": "1.3.2"
+    },
+    {
+      "name": "androidx.compose.material3:material3-desktop",
+      "version": "1.3.2"
+    },
+    {
+      "name": "androidx.compose.material3:material3",
+      "version": "1.3.2"
+    },
+    {
+      "name": "androidx.compose.material:material-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.material:material-icons-core-android",
+      "version": "1.7.8"
+    },
+    {
+      "name": "androidx.compose.material:material-icons-core-desktop",
+      "version": "1.7.8"
+    },
+    {
+      "name": "androidx.compose.material:material-icons-core",
+      "version": "1.7.8"
+    },
+    {
+      "name": "androidx.compose.material:material-ripple-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.material:material-ripple",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.material:material",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime-annotation-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime-annotation",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime-saveable-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime-saveable",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.runtime:runtime",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-geometry-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-geometry",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-graphics-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-graphics",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-text-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-text",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling-data-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling-data",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling-preview-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling-preview",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-tooling",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-unit-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-unit",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-util-android",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui-util",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose.ui:ui",
+      "version": "1.9.0"
+    },
+    {
+      "name": "androidx.compose:compose-bom",
+      "version": "2025.08.00"
+    },
+    {
+      "name": "androidx.concurrent:concurrent-futures",
+      "version": "1.1.0"
+    },
+    {
+      "name": "androidx.core:core-ktx",
+      "version": "1.13.0"
+    },
+    {
+      "name": "androidx.core:core-ktx",
+      "version": "1.15.0"
+    },
+    {
+      "name": "androidx.core:core-viewtree",
+      "version": "1.0.0"
+    },
+    {
+      "name": "androidx.core:core",
+      "version": "1.13.0"
+    },
+    {
+      "name": "androidx.core:core",
+      "version": "1.15.0"
+    },
+    {
+      "name": "androidx.customview:customview-poolingcontainer",
+      "version": "1.0.0"
+    },
+    {
+      "name": "androidx.databinding:databinding-common",
+      "version": "9.3.1"
+    },
+    {
+      "name": "androidx.databinding:databinding-compiler-common",
+      "version": "9.3.1"
+    },
+    {
+      "name": "androidx.emoji2:emoji2",
+      "version": "1.4.0"
+    },
+    {
+      "name": "androidx.graphics:graphics-path",
+      "version": "1.0.1"
+    },
+    {
+      "name": "androidx.interpolator:interpolator",
+      "version": "1.0.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-common-java8",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-common-jvm",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-common",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-livedata-core",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-process",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime-android",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime-compose-android",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime-compose",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime-ktx-android",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime-ktx",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-runtime",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-viewmodel-android",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-viewmodel-ktx",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-viewmodel-savedstate-android",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.lifecycle:lifecycle-viewmodel",
+      "version": "2.9.0"
+    },
+    {
+      "name": "androidx.profileinstaller:profileinstaller",
+      "version": "1.4.0"
+    },
+    {
+      "name": "androidx.savedstate:savedstate-android",
+      "version": "1.3.0"
+    },
+    {
+      "name": "androidx.savedstate:savedstate-compose-android",
+      "version": "1.3.0"
+    },
+    {
+      "name": "androidx.savedstate:savedstate-compose",
+      "version": "1.3.0"
+    },
+    {
+      "name": "androidx.savedstate:savedstate-ktx",
+      "version": "1.3.0"
+    },
+    {
+      "name": "androidx.savedstate:savedstate",
+      "version": "1.3.0"
+    },
+    {
+      "name": "androidx.startup:startup-runtime",
+      "version": "1.1.1"
+    },
+    {
+      "name": "androidx.tracing:tracing",
+      "version": "1.2.0"
+    },
+    {
+      "name": "androidx.versionedparcelable:versionedparcelable",
+      "version": "1.1.1"
+    },
+    {
+      "name": "com.android.application:com.android.application.gradle.plugin",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.databinding:baseLibrary",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.analytics-library:crash",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.analytics-library:protos",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.analytics-library:shared",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.analytics-library:tracker",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.build.jetifier:jetifier-core",
+      "version": "1.0.0-beta10"
+    },
+    {
+      "name": "com.android.tools.build.jetifier:jetifier-processor",
+      "version": "1.0.0-beta10"
+    },
+    {
+      "name": "com.android.tools.build:aapt2-proto",
+      "version": "9.3.1-15703166"
+    },
+    {
+      "name": "com.android.tools.build:aaptcompiler",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:apksig",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:apkzlib",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:builder-model",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:builder-test-api",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:builder",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:bundletool",
+      "version": "1.18.3"
+    },
+    {
+      "name": "com.android.tools.build:gradle-api",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:gradle-common-api",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:gradle-settings-api",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:gradle",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android.tools.build:manifest-merger",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.ddms:ddmlib",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.emulator:proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.external.com-intellij:intellij-core",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.external.com-intellij:kotlin-compiler",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.external.org-jetbrains:uast",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.layoutlib:layoutlib-api",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint-api",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint-checks",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint-gradle",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint-model",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint-typedef-remover",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.lint:lint",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-device-provider-ddmlib-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-device-provider-ddmlib",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-additional-test-output-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-additional-test-output",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-apk-installer-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-apk-installer",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-coverage-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-coverage",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-device-info-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-device-info",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-emulator-control-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-emulator-control",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-logcat-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-host-logcat",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-result-listener-gradle-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:android-test-plugin-result-listener-gradle",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:gradle-work-action-api",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:gradle-work-action",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools.utp:utp-common",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:annotations",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:common",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:dvlib",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:play-sdk-proto",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:repository",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:sdk-common",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android.tools:sdklib",
+      "version": "32.3.1"
+    },
+    {
+      "name": "com.android:signflinger",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.android:zipflinger",
+      "version": "9.3.1"
+    },
+    {
+      "name": "com.google.android:annotations",
+      "version": "4.1.1.4"
+    },
+    {
+      "name": "com.google.api.grpc:proto-google-common-protos",
+      "version": "2.17.0"
+    },
+    {
+      "name": "com.google.api.grpc:proto-google-common-protos",
+      "version": "2.48.0"
+    },
+    {
+      "name": "com.google.auto.service:auto-service-annotations",
+      "version": "1.1.1"
+    },
+    {
+      "name": "com.google.auto.service:auto-service",
+      "version": "1.1.1"
+    },
+    {
+      "name": "com.google.auto.value:auto-value-annotations",
+      "version": "1.6.2"
+    },
+    {
+      "name": "com.google.auto:auto-common",
+      "version": "1.2.1"
+    },
+    {
+      "name": "com.google.code.findbugs:jsr305",
+      "version": "3.0.2"
+    },
+    {
+      "name": "com.google.code.gson:gson",
+      "version": "2.10.1"
+    },
+    {
+      "name": "com.google.code.gson:gson",
+      "version": "2.11.0"
+    },
+    {
+      "name": "com.google.code.gson:gson",
+      "version": "2.8.9"
+    },
+    {
+      "name": "com.google.crypto.tink:tink",
+      "version": "1.18.0"
+    },
+    {
+      "name": "com.google.crypto.tink:tink",
+      "version": "1.7.0"
+    },
+    {
+      "name": "com.google.dagger:dagger",
+      "version": "2.28.3"
+    },
+    {
+      "name": "com.google.dagger:dagger",
+      "version": "2.48"
+    },
+    {
+      "name": "com.google.errorprone:error_prone_annotations",
+      "version": "2.23.0"
+    },
+    {
+      "name": "com.google.errorprone:error_prone_annotations",
+      "version": "2.36.0"
+    },
+    {
+      "name": "com.google.flatbuffers:flatbuffers-java",
+      "version": "1.12.0"
+    },
+    {
+      "name": "com.google.guava:failureaccess",
+      "version": "1.0.1"
+    },
+    {
+      "name": "com.google.guava:failureaccess",
+      "version": "1.0.2"
+    },
+    {
+      "name": "com.google.guava:guava",
+      "version": "32.0.1-jre"
+    },
+    {
+      "name": "com.google.guava:guava",
+      "version": "33.4.0-jre"
+    },
+    {
+      "name": "com.google.guava:listenablefuture",
+      "version": "1.0"
+    },
+    {
+      "name": "com.google.guava:listenablefuture",
+      "version": "9999.0-empty-to-avoid-conflict-with-guava"
+    },
+    {
+      "name": "com.google.j2objc:j2objc-annotations",
+      "version": "2.8"
+    },
+    {
+      "name": "com.google.j2objc:j2objc-annotations",
+      "version": "3.0.0"
+    },
+    {
+      "name": "com.google.jimfs:jimfs",
+      "version": "1.1"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-bom",
+      "version": "3.25.5"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-java-util",
+      "version": "3.25.5"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-java-util",
+      "version": "4.28.3"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-java",
+      "version": "3.25.5"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-java",
+      "version": "4.28.3"
+    },
+    {
+      "name": "com.google.protobuf:protobuf-kotlin",
+      "version": "4.28.3"
+    },
+    {
+      "name": "com.google.testing.platform:android-device-provider-local",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.google.testing.platform:android-driver-instrumentation",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.google.testing.platform:android-test-plugin",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.google.testing.platform:core-proto",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.google.testing.platform:core",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.google.testing.platform:launcher",
+      "version": "0.0.9-alpha04"
+    },
+    {
+      "name": "com.googlecode.juniversalchardet:juniversalchardet",
+      "version": "1.0.3"
+    },
+    {
+      "name": "com.squareup:javapoet",
+      "version": "1.13.0"
+    },
+    {
+      "name": "com.squareup:javawriter",
+      "version": "2.5.0"
+    },
+    {
+      "name": "com.sun.istack:istack-commons-runtime",
+      "version": "3.0.8"
+    },
+    {
+      "name": "com.sun.xml.fastinfoset:FastInfoset",
+      "version": "1.2.16"
+    },
+    {
+      "name": "commons-codec:commons-codec",
+      "version": "1.17.1"
+    },
+    {
+      "name": "commons-io:commons-io",
+      "version": "2.16.1"
+    },
+    {
+      "name": "commons-logging:commons-logging",
+      "version": "1.2"
+    },
+    {
+      "name": "io.grpc:grpc-api",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-api",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-context",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-context",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-core",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-core",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-netty",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-netty",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-protobuf-lite",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-protobuf-lite",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-protobuf",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-protobuf",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-services",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-stub",
+      "version": "1.57.2"
+    },
+    {
+      "name": "io.grpc:grpc-stub",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.grpc:grpc-util",
+      "version": "1.69.1"
+    },
+    {
+      "name": "io.netty:netty-bom",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-buffer",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-codec-http2",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-codec-http",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-codec-socks",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-codec",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-common",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-handler-proxy",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-handler",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-resolver",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-transport-native-unix-common",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.netty:netty-transport",
+      "version": "4.1.138.Final"
+    },
+    {
+      "name": "io.opencensus:opencensus-api",
+      "version": "0.31.0"
+    },
+    {
+      "name": "io.opencensus:opencensus-proto",
+      "version": "0.2.0"
+    },
+    {
+      "name": "io.perfmark:perfmark-api",
+      "version": "0.26.0"
+    },
+    {
+      "name": "io.perfmark:perfmark-api",
+      "version": "0.27.0"
+    },
+    {
+      "name": "jakarta.activation:jakarta.activation-api",
+      "version": "1.2.1"
+    },
+    {
+      "name": "jakarta.xml.bind:jakarta.xml.bind-api",
+      "version": "2.3.2"
+    },
+    {
+      "name": "javax.annotation:javax.annotation-api",
+      "version": "1.3.2"
+    },
+    {
+      "name": "javax.inject:javax.inject",
+      "version": "1"
+    },
+    {
+      "name": "net.java.dev.jna:jna-platform",
+      "version": "5.6.0"
+    },
+    {
+      "name": "net.java.dev.jna:jna",
+      "version": "5.6.0"
+    },
+    {
+      "name": "net.sf.jopt-simple:jopt-simple",
+      "version": "4.9"
+    },
+    {
+      "name": "net.sf.kxml:kxml2",
+      "version": "2.3.0"
+    },
+    {
+      "name": "org.apache.commons:commons-compress",
+      "version": "1.27.1"
+    },
+    {
+      "name": "org.apache.commons:commons-lang3",
+      "version": "3.18.0"
+    },
+    {
+      "name": "org.apache.httpcomponents:httpclient",
+      "version": "4.5.14"
+    },
+    {
+      "name": "org.apache.httpcomponents:httpcore",
+      "version": "4.4.16"
+    },
+    {
+      "name": "org.apache.httpcomponents:httpmime",
+      "version": "4.5.6"
+    },
+    {
+      "name": "org.bitbucket.b_c:jose4j",
+      "version": "0.9.6"
+    },
+    {
+      "name": "org.bouncycastle:bcpkix-jdk18on",
+      "version": "1.84"
+    },
+    {
+      "name": "org.bouncycastle:bcprov-jdk18on",
+      "version": "1.84"
+    },
+    {
+      "name": "org.bouncycastle:bcutil-jdk18on",
+      "version": "1.84"
+    },
+    {
+      "name": "org.checkerframework:checker-qual",
+      "version": "3.33.0"
+    },
+    {
+      "name": "org.checkerframework:checker-qual",
+      "version": "3.43.0"
+    },
+    {
+      "name": "org.codehaus.groovy:groovy",
+      "version": "3.0.22"
+    },
+    {
+      "name": "org.codehaus.mojo:animal-sniffer-annotations",
+      "version": "1.23"
+    },
+    {
+      "name": "org.codehaus.mojo:animal-sniffer-annotations",
+      "version": "1.24"
+    },
+    {
+      "name": "org.glassfish.jaxb:jaxb-runtime",
+      "version": "2.3.2"
+    },
+    {
+      "name": "org.glassfish.jaxb:txw2",
+      "version": "2.3.2"
+    },
+    {
+      "name": "org.jdom:jdom2",
+      "version": "2.0.6.1"
+    },
+    {
+      "name": "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:compose-compiler-gradle-plugin",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:compose-group-mapping",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:fus-statistics-gradle-plugin",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-statistics",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-api",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-api",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-compat",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-impl",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-build-tools-impl",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-compiler-embeddable",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-compiler-embeddable",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-compiler-runner",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-compiler-runner",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-daemon-client",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-daemon-client",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-daemon-embeddable",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-daemon-embeddable",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugin-annotations",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugin-api",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugin-idea-proto",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugin-idea",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugin",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-gradle-plugins-bom",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-klib-commonizer-api",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-native-utils",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-reflect",
+      "version": "1.6.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-reflect",
+      "version": "1.8.21"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-reflect",
+      "version": "2.2.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-reflect",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-script-runtime",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-script-runtime",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "version": "1.8.21"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "version": "1.9.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "version": "2.2.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-common",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "version": "1.8.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+      "version": "2.2.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "version": "1.8.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+      "version": "2.2.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "1.8.21"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "1.9.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "2.2.10"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "2.2.21"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "2.4.0"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-stdlib",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-tooling-core",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-util-io",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-util-klib-metadata",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlin:kotlin-util-klib",
+      "version": "2.4.20"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:atomicfu-jvm",
+      "version": "0.22.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:atomicfu",
+      "version": "0.22.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+      "version": "1.8.1"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
+      "version": "1.8.1"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
+      "version": "1.9.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+      "version": "1.8.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+      "version": "1.8.1"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+      "version": "1.9.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+      "version": "1.8.1"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+      "version": "1.9.0"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-serialization-bom",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains.kotlinx:kotlinx-serialization-core",
+      "version": "1.7.3"
+    },
+    {
+      "name": "org.jetbrains:annotations",
+      "version": "13.0"
+    },
+    {
+      "name": "org.jetbrains:annotations",
+      "version": "23.0.0"
+    },
+    {
+      "name": "org.jspecify:jspecify",
+      "version": "1.0.0"
+    },
+    {
+      "name": "org.jvnet.staxex:stax-ex",
+      "version": "1.8.1"
+    },
+    {
+      "name": "org.ow2.asm:asm-analysis",
+      "version": "9.9"
+    },
+    {
+      "name": "org.ow2.asm:asm-commons",
+      "version": "9.9"
+    },
+    {
+      "name": "org.ow2.asm:asm-tree",
+      "version": "9.9"
+    },
+    {
+      "name": "org.ow2.asm:asm-tree",
+      "version": "9.9.1"
+    },
+    {
+      "name": "org.ow2.asm:asm-util",
+      "version": "9.9"
+    },
+    {
+      "name": "org.ow2.asm:asm",
+      "version": "9.9"
+    },
+    {
+      "name": "org.ow2.asm:asm",
+      "version": "9.9.1"
+    },
+    {
+      "name": "org.slf4j:slf4j-api",
+      "version": "1.7.30"
+    },
+    {
+      "name": "org.tensorflow:tensorflow-lite-metadata",
+      "version": "0.2.0"
+    }
+  ],
+  "dependencyLocking": "strict",
+  "dependencyVerification": "sha256, including metadata",
+  "artifacts": [
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 47505,
+      "sha256": "7a9ce74cff467ca1bf60a4fcd9f05185acceda4d0f382434d393e17864262c5d"
+    },
+    {
+      "path": "app/build/outputs/apk/debug/app-debug.apk",
+      "bytes": 27574255,
+      "sha256": "cf795c76aef15ab29b93d6e344c0b383285d96b5e34c15b0343c77ed136d5f6a"
+    },
+    {
+      "path": "app/build/outputs/apk/release/app-release-unsigned.apk",
+      "bytes": 20223258,
+      "sha256": "2f68f0c993d4e46840e0f363807fcf649a7cc49ea8d9355fa6274955ac3f50ac"
+    }
+  ]
+}
