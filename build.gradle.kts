@@ -5,7 +5,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
         constraints {
-            add("classpath", "org.apache.commons:commons-lang3:3.18.0")
+            add("classpath", "org.apache.commons:commons-lang3:3.20.0")
             add("classpath", "org.bitbucket.b_c:jose4j:0.9.6")
             add("classpath", "org.bouncycastle:bcprov-jdk18on:1.84")
             add("classpath", "org.bouncycastle:bcpkix-jdk18on:1.84")
