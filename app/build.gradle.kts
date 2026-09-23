@@ -54,7 +54,7 @@ configurations.configureEach {
 
 dependencies {
     add("secureTools", platform("io.netty:netty-bom:4.1.138.Final"))
-    add("secureTools", platform("com.google.protobuf:protobuf-bom:3.25.5"))
+    add("secureTools", platform("com.google.protobuf:protobuf-bom:4.36.1"))
     constraints {
         add("secureTools", "org.apache.commons:commons-lang3:3.18.0")
         add("secureTools", "org.apache.httpcomponents:httpclient:4.5.14")
