@@ -36,7 +36,7 @@ New-Item -ItemType Directory -Path $fixtureDirectory -Force | Out-Null
 $androidNamespace = 'http://schemas.android.com/apk/res/android'
 try {
     $mutations = @(
-        @{ Name = 'backup enabled'; Error = 'allowBackup'; Change = { param($xml) $xml.manifest.application.SetAttribute('allowBackup', $androidNamespace, 'true') } },
+        @{ Name = 'compact backup disabled'; Error = 'allowBackup'; Change = { param($xml) $xml.manifest.application.SetAttribute('allowBackup', $androidNamespace, 'false') } },
         @{ Name = 'implicit default backup'; Error = 'allowBackup'; Change = { param($xml) $xml.manifest.application.RemoveAttribute('allowBackup', $androidNamespace) } },
         @{ Name = 'full backup enabled'; Error = 'fullBackupContent'; Change = { param($xml) $xml.manifest.application.SetAttribute('fullBackupContent', $androidNamespace, 'true') } },
         @{ Name = 'cleartext enabled'; Error = 'usesCleartextTraffic'; Change = { param($xml) $xml.manifest.application.SetAttribute('usesCleartextTraffic', $androidNamespace, 'true') } },
@@ -47,9 +47,16 @@ try {
             $node.SetAttribute('name', $androidNamespace, 'android.permission.INTERNET')
             $xml.manifest.AppendChild($node)
         } },
+        @{ Name = 'exact alarm permission'; Error = 'unexpected requested permission'; Change = { param($xml)
+            $node = $xml.CreateElement('uses-permission')
+            $node.SetAttribute('name', $androidNamespace, 'android.permission.SCHEDULE_EXACT_ALARM')
+            $xml.manifest.AppendChild($node)
+        } },
+        @{ Name = 'unprotected backup job'; Error = 'BIND_JOB_SERVICE'; Change = { param($xml) $xml.SelectSingleNode("/manifest/application/service[contains(@*[local-name()='name'], 'StudyBackupJob')]").RemoveAttribute('permission', $androidNamespace) } },
+        @{ Name = 'exported timer receiver'; Error = 'non-exported'; Change = { param($xml) $xml.SelectSingleNode("/manifest/application/receiver[contains(@*[local-name()='name'], 'TimerReminderReceiver')]").SetAttribute('exported', $androidNamespace, 'true') } },
         @{ Name = 'weakened internal permission'; Error = 'protection level'; Change = { param($xml) $xml.manifest.permission.SetAttribute('protectionLevel', $androidNamespace, 'normal') } },
         @{ Name = 'exported provider'; Error = 'non-exported'; Change = { param($xml) $xml.manifest.application.provider.SetAttribute('exported', $androidNamespace, 'true') } },
-        @{ Name = 'receiver without DUMP protection'; Error = 'non-exported'; Change = { param($xml) $xml.manifest.application.receiver.RemoveAttribute('permission', $androidNamespace) } },
+        @{ Name = 'receiver without DUMP protection'; Error = 'non-exported'; Change = { param($xml) $xml.SelectSingleNode("/manifest/application/receiver[contains(@*[local-name()='name'], 'ProfileInstallReceiver')]").RemoveAttribute('permission', $androidNamespace) } },
         @{ Name = 'unexpected exported service'; Error = 'non-exported'; Change = { param($xml)
             $node = $xml.CreateElement('service')
             $node.SetAttribute('name', $androidNamespace, '.UnexpectedService')
@@ -59,7 +66,7 @@ try {
         @{ Name = 'implicitly exported receiver'; Error = 'non-exported'; Change = { param($xml)
             $node = $xml.CreateElement('receiver')
             $node.SetAttribute('name', $androidNamespace, '.UnexpectedReceiver')
-            $node.AppendChild($xml.manifest.application.receiver.'intent-filter'[0].CloneNode($true))
+            $node.AppendChild($xml.SelectSingleNode('/manifest/application/receiver/intent-filter').CloneNode($true))
             $xml.manifest.application.AppendChild($node)
         } },
         @{ Name = 'launcher deep link'; Error = 'launcher intent'; Change = { param($xml)
@@ -83,14 +90,24 @@ try {
     $fixturePath = Join-Path $fixtureDirectory 'manifest.xml'
     [System.IO.File]::WriteAllText($fixturePath, $release.ManifestXml)
     $backupPath = Join-Path $fixtureDirectory 'backup.xml'
+    $legacyPath = Join-Path $fixtureDirectory 'legacy-backup.xml'
+    [System.IO.File]::WriteAllText($legacyPath, $release.LegacyBackupRulesXml[0])
     $backupMutations = @(
-        @{ Name = 'device transfer of databases'; Error = 'device-transfer does not exclude database'; Change = { param($xml)
-            $node = $xml.SelectSingleNode("/data-extraction-rules/device-transfer/exclude[@domain='database']")
-            $node.ParentNode.RemoveChild($node)
+        @{ Name = 'device transfer of all files'; Error = 'only the compact snapshot'; Change = { param($xml)
+            $xml.SelectSingleNode('/data-extraction-rules/device-transfer/include').SetAttribute('path', '.')
         } },
-        @{ Name = 'cloud backup of preferences'; Error = 'cloud-backup does not exclude sharedpref'; Change = { param($xml)
-            $node = $xml.SelectSingleNode("/data-extraction-rules/cloud-backup/exclude[@domain='sharedpref']")
-            $node.SetAttribute('path', 'only-one-preference.xml')
+        @{ Name = 'cloud backup of model files'; Error = 'only the compact snapshot'; Change = { param($xml)
+            $xml.SelectSingleNode('/data-extraction-rules/cloud-backup/include').SetAttribute('path', 'models')
+        } },
+        @{ Name = 'cloud backup of preferences'; Error = 'only the compact snapshot'; Change = { param($xml)
+            $xml.SelectSingleNode('/data-extraction-rules/cloud-backup/include').SetAttribute('domain', 'sharedpref')
+        } },
+        @{ Name = 'cloud backup without encryption'; Error = 'encryption capabilities'; Change = { param($xml)
+            $xml.SelectSingleNode('/data-extraction-rules/cloud-backup').RemoveAttribute('disableIfNoEncryptionCapabilities')
+        } },
+        @{ Name = 'extra backup include'; Error = 'only the compact snapshot'; Change = { param($xml)
+            $parent = $xml.SelectSingleNode('/data-extraction-rules/device-transfer')
+            $parent.AppendChild($parent.FirstChild.CloneNode($true))
         } }
     )
     foreach ($mutation in $backupMutations) {
@@ -99,7 +116,19 @@ try {
         $xml.LoadXml($release.BackupRulesXml[0])
         & $mutation.Change $xml | Out-Null
         $xml.Save($backupPath)
-        Assert-Rejected { & $verifier -ManifestPath $fixturePath -BackupRulesPath $backupPath } $mutation.Error $mutation.Name
+        Assert-Rejected { & $verifier -ManifestPath $fixturePath -BackupRulesPath $backupPath -LegacyBackupRulesPath $legacyPath } $mutation.Error $mutation.Name
+        $checks++
+    }
+    [System.IO.File]::WriteAllText($backupPath, $release.BackupRulesXml[0])
+    foreach ($mutation in @(
+        @{ Name = 'legacy backup of all files'; Error = 'only the compact snapshot'; Change = { param($xml) $xml.DocumentElement.FirstChild.SetAttribute('path', '.') } },
+        @{ Name = 'legacy backup without encryption'; Error = 'clientSideEncryption'; Change = { param($xml) $xml.DocumentElement.FirstChild.RemoveAttribute('requireFlags') } }
+    )) {
+        $xml = [System.Xml.XmlDocument]::new()
+        $xml.LoadXml($release.LegacyBackupRulesXml[0])
+        & $mutation.Change $xml | Out-Null
+        $xml.Save($legacyPath)
+        Assert-Rejected { & $verifier -ManifestPath $fixturePath -BackupRulesPath $backupPath -LegacyBackupRulesPath $legacyPath } $mutation.Error $mutation.Name
         $checks++
     }
 

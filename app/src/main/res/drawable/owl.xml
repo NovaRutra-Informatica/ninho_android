@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="144dp" android:height="144dp" android:viewportWidth="280" android:viewportHeight="280">
+    <group android:translateY="12" android:translateX="-1">
+        <path android:fillColor="#e5e6d5" android:pathData="M67,234a74,8 0,1 0,148 0a74,8 0,1 0,-148 0" />
+        <path android:fillColor="#f4dda5" android:pathData="M59,204Q93,190 139,205Q185,187 224,201L215,224Q180,215 141,231Q97,216 60,223Z" />
+        <path android:strokeColor="#b39e70" android:strokeWidth="3" android:pathData="M139,205L141,231M70,210Q108,207 130,216M151,216Q180,207 212,212" />
+        <path android:fillColor="#80b9a0" android:pathData="M66,80L69,28L109,56Q139,42 169,55L211,29L213,88Q229,126 209,174Q190,214 139,217Q80,215 65,172Q49,126 66,80" />
+        <path android:fillColor="#f7f1db" android:pathData="M68,88Q71,58 105,57Q139,55 140,84Q155,51 186,59Q215,63 211,101Q204,147 142,174Q79,148 68,88" />
+        <path android:fillColor="#579781" android:pathData="M66,111Q36,151 69,189Q80,169 88,154M211,111Q241,151 209,189Q195,164 191,154" />
+        <path android:fillColor="#213f37" android:pathData="M95,99a13,19 0,1 0,26 0a13,19 0,1 0,-26 0M159,99a13,19 0,1 0,26 0a13,19 0,1 0,-26 0" />
+        <path android:fillColor="#ffffff" android:pathData="M107,93a4,4 0,1 0,8 0a4,4 0,1 0,-8 0M171,93a4,4 0,1 0,8 0a4,4 0,1 0,-8 0" />
+        <path android:fillColor="#dd9659" android:pathData="M129,119Q140,115 151,119L141,135Z" />
+        <path android:strokeColor="#4d8a74" android:strokeWidth="4" android:strokeLineCap="round" android:pathData="M116,165L123,174L130,165M137,176L144,185L151,176M158,165L165,174L172,165" />
+        <path android:strokeColor="#d29c57" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M116,214L110,225M126,215L124,226M156,215L156,226M166,214L172,224" />
+        <path android:fillColor="#c2d998" android:pathData="M34,70l3,8 8,3 -8,3 -3,8 -3,-8 -8,-3 8,-3ZM237,91l2,6 6,2 -6,2 -2,6 -2,-6 -6,-2 6,-2Z" />
+    </group>
+</vector>

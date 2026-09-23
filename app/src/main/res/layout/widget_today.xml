@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="UseCompoundDrawables"
+    android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="center_vertical" android:padding="18dp"
+    android:background="@drawable/widget_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/owl"  android:importantForAccessibility="no"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:layout_marginStart="8dp" android:text="@string/widget_today_title"
+            android:fontFamily="@font/dm_sans_semibold" android:textSize="13sp" android:textColor="@color/widget_ink" android:maxLines="2"/>
+    </LinearLayout>
+    <TextView android:id="@+id/widget_value" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="9dp" android:text="@string/widget_today_preview"
+        android:fontFamily="@font/fraunces_medium" android:textSize="26sp" android:textColor="@color/widget_ink"
+        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="16sp" android:autoSizeMaxTextSize="26sp" android:maxLines="2"/>
+    <TextView android:id="@+id/widget_detail" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="5dp" android:text="@string/widget_today_detail"
+        android:fontFamily="@font/dm_sans_regular" android:textSize="12sp" android:textColor="@color/widget_secondary" android:maxLines="3"/>
+</LinearLayout>

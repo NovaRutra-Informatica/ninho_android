@@ -1,0 +1,7 @@
+<resources>
+    <color name="widget_paper">#F3F4EF</color>
+    <color name="widget_ink">#193C35</color>
+    <color name="widget_secondary">#56645D</color>
+    <color name="widget_border">#DCE5D8</color>
+    <color name="widget_green">#214D40</color>
+</resources>

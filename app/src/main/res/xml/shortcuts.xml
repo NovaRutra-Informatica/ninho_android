@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="focus" android:enabled="true" android:icon="@drawable/ic_timer_notification" android:shortcutShortLabel="@string/shortcut_focus">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="app.ninho.android" android:targetClass="app.ninho.android.MainActivity"><extra android:name="open_route" android:value="focus"/></intent>
+    </shortcut>
+    <shortcut android:shortcutId="reviews" android:enabled="true" android:icon="@drawable/ic_review" android:shortcutShortLabel="@string/shortcut_reviews">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="app.ninho.android" android:targetClass="app.ninho.android.MainActivity"><extra android:name="open_route" android:value="reviews"/></intent>
+    </shortcut>
+</shortcuts>

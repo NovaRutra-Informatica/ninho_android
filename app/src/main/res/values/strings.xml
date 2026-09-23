@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Ninho</string>
-    <string name="environment_ready">Ambiente preparado</string>
-    <string name="environment_description">A base da versão Android está pronta para o próximo ciclo de desenvolvimento.</string>
 </resources>

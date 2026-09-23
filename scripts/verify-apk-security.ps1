@@ -6,6 +6,8 @@ param(
     [string]$ManifestPath,
     [Parameter(ParameterSetName = 'Manifest')]
     [string]$BackupRulesPath,
+    [Parameter(ParameterSetName = 'Manifest')]
+    [string]$LegacyBackupRulesPath,
     [string]$SdkPath = $env:ANDROID_HOME,
     [string]$JavaHome = $env:JAVA_HOME,
     [string]$ExpectedPackage = 'app.ninho.android',
@@ -52,8 +54,8 @@ function Assert-ManifestSecurity([System.Xml.XmlDocument]$Document, [string]$Pac
     $application = $applications[0]
     Assert-FalseAttribute $application 'debuggable' $false
     Assert-FalseAttribute $application 'testOnly' $false
-    Assert-FalseAttribute $application 'allowBackup' $true
-    Assert-FalseAttribute $application 'fullBackupContent' $true
+    if ((Get-AndroidAttribute $application 'allowBackup') -ne 'true') { throw 'Manifest policy: allowBackup must explicitly enable the compact-only backup policy.' }
+    if ((Get-AndroidAttribute $application 'fullBackupContent') -notmatch '^@') { throw 'Manifest policy: fullBackupContent must reference the compact-only rules.' }
     Assert-FalseAttribute $application 'usesCleartextTraffic' $true
     if ((Get-AndroidAttribute $application 'networkSecurityConfig') -ne '') {
         throw 'Manifest policy: networkSecurityConfig needs a separate policy review.'
@@ -72,7 +74,8 @@ function Assert-ManifestSecurity([System.Xml.XmlDocument]$Document, [string]$Pac
     }
     foreach ($permission in $manifest.SelectNodes('uses-permission | uses-permission-sdk-23 | uses-permission-sdk-m')) {
         $name = Get-AndroidAttribute $permission 'name'
-        if ($name -ne $internalPermission -or $permissionDefinitions.Count -ne 1) {
+        $allowedNoticePermissions = @('android.permission.POST_NOTIFICATIONS', 'android.permission.RECEIVE_BOOT_COMPLETED')
+        if (($name -ne $internalPermission -and $name -notin $allowedNoticePermissions) -or $permissionDefinitions.Count -ne 1) {
             throw "Manifest policy: unexpected requested permission: $name."
         }
     }
@@ -100,28 +103,41 @@ function Assert-ManifestSecurity([System.Xml.XmlDocument]$Document, [string]$Pac
         } elseif ($exported -ne 'false') {
             throw "Manifest policy: component must explicitly be non-exported: $name."
         }
+        if ($name -eq "$Package.StudyBackupJob" -and (Get-AndroidAttribute $component 'permission') -ne 'android.permission.BIND_JOB_SERVICE') {
+            throw 'Manifest policy: StudyBackupJob must require BIND_JOB_SERVICE.'
+        }
         if ($exported -eq 'true') { $exportedNames.Add($name) }
     }
     if ($launcherCount -ne 1) { throw 'Manifest policy: exactly one main launcher activity is required.' }
     return $exportedNames.ToArray()
 }
 
-function Assert-BackupRules([System.Xml.XmlDocument]$Document) {
-    if ($Document.DocumentElement.LocalName -ne 'data-extraction-rules') {
-        throw 'Backup policy: expected data-extraction-rules.'
+function Assert-CompactInclude([System.Xml.XmlElement]$Node, [bool]$Legacy) {
+    $children = @($Node.SelectNodes('*'))
+    if ($children.Count -ne 1 -or $children[0].LocalName -ne 'include' -or
+        $children[0].GetAttribute('domain') -ne 'file' -or $children[0].GetAttribute('path') -ne 'compact-backup/latest.ninho-backup.gz') {
+        throw 'Backup policy: only the compact snapshot may be included.'
     }
-    $domains = @('root', 'file', 'database', 'sharedpref', 'external', 'device_root', 'device_file', 'device_database', 'device_sharedpref')
+    if ($Legacy -and $children[0].GetAttribute('requireFlags') -ne 'clientSideEncryption') {
+        throw 'Backup policy: legacy cloud backup requires clientSideEncryption.'
+    }
+}
+function Assert-BackupRules([System.Xml.XmlDocument]$Document) {
+    if ($Document.DocumentElement.LocalName -ne 'data-extraction-rules' -or $Document.DocumentElement.SelectNodes('*').Count -ne 2) {
+        throw 'Backup policy: expected only cloud-backup and device-transfer rules.'
+    }
     foreach ($mode in @('cloud-backup', 'device-transfer')) {
         $rules = @($Document.DocumentElement.SelectNodes($mode))
-        if ($rules.Count -ne 1 -or $rules[0].SelectNodes('include').Count -ne 0) {
-            throw "Backup policy: $mode must exclude all application data."
-        }
-        foreach ($domain in $domains) {
-            if ($rules[0].SelectNodes("exclude[@domain='$domain' and @path='.']").Count -ne 1) {
-                throw "Backup policy: $mode does not exclude $domain."
-            }
+        if ($rules.Count -ne 1) { throw "Backup policy: exactly one $mode is required." }
+        Assert-CompactInclude $rules[0] $false
+        if ($mode -eq 'cloud-backup' -and $rules[0].GetAttribute('disableIfNoEncryptionCapabilities') -ne 'true') {
+            throw 'Backup policy: cloud backup must require encryption capabilities.'
         }
     }
+}
+function Assert-LegacyBackupRules([System.Xml.XmlDocument]$Document) {
+    if ($Document.DocumentElement.LocalName -ne 'full-backup-content') { throw 'Backup policy: expected full-backup-content.' }
+    Assert-CompactInclude $Document.DocumentElement $true
 }
 
 function Invoke-ApkAnalyzer([string[]]$Arguments) {
@@ -155,12 +171,10 @@ $document = Read-SafeXml $manifestText
 $exportedComponents = @(Assert-ManifestSecurity $document $ExpectedPackage)
 $rulesReference = Get-AndroidAttribute $document.DocumentElement.SelectSingleNode('application') 'dataExtractionRules'
 if (-not $rulesReference) { throw 'Backup policy: dataExtractionRules is required.' }
+$legacyReference = Get-AndroidAttribute $document.DocumentElement.SelectSingleNode('application') 'fullBackupContent'
 $backupRules = [System.Collections.Generic.List[string]]::new()
+$legacyBackupRules = [System.Collections.Generic.List[string]]::new()
 if ($PSCmdlet.ParameterSetName -eq 'Apk') {
-    if ($rulesReference -notmatch '^@(?:ref/)?(0x[0-9a-fA-F]{8})$') {
-        throw 'Backup policy: dataExtractionRules must reference a compiled resource.'
-    }
-    $resourceId = $Matches[1]
     $buildTools = Get-ChildItem -LiteralPath (Join-Path $SdkPath 'build-tools') -Directory |
         Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } |
         Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
@@ -168,27 +182,35 @@ if ($PSCmdlet.ParameterSetName -eq 'Apk') {
     $aapt = Join-Path $buildTools.FullName 'aapt2.exe'
     $table = (& $aapt dump resources $sourcePath) -join [Environment]::NewLine
     if ($LASTEXITCODE -ne 0) { throw "aapt2 failed with exit code $LASTEXITCODE." }
+    foreach ($reference in @(@{ Value = $rulesReference; Legacy = $false }, @{ Value = $legacyReference; Legacy = $true })) {
+        if ($reference.Value -notmatch '^@(?:ref/)?(0x[0-9a-fA-F]{8})$') { throw 'Backup policy: rules must reference a compiled resource.' }
+        $resourceId = $Matches[1]
     $resourcePattern = '(?ms)^\s+resource\s+' + [regex]::Escape($resourceId) + '\s+xml/[^\r\n]+\r?\n(?<entries>.*?)(?=^\s+resource\s+|\z)'
     $resource = [regex]::Match($table, $resourcePattern)
     if (-not $resource.Success) { throw 'Backup policy: the referenced XML resource is missing from the APK.' }
-    $entries = [regex]::Matches($resource.Groups['entries'].Value, '(?m)^\s+\([^\r\n]*?\) (?<value>[^\r\n]+)$')
+    # aapt2 resource entries can end in CRLF anywhere in the table.
+    $entries = [regex]::Matches($resource.Groups['entries'].Value, '(?m)^[ \t]+\([^\r\n]*?\) (?<value>[^\r\n]+)\r?$')
     if ($entries.Count -eq 0) { throw 'Backup policy: the resource has no configurations.' }
     foreach ($entry in $entries) {
         if ($entry.Groups['value'].Value -notmatch '^\(file\) (res/\S+\.xml) type=XML$') {
             throw 'Backup policy: an unsupported resource configuration needs review.'
         }
         $backupText = Invoke-ApkAnalyzer @('resources', 'xml', '--file', $Matches[1], $sourcePath)
-        Assert-BackupRules (Read-SafeXml $backupText)
-        $backupRules.Add($backupText)
+        if ($reference.Legacy) { Assert-LegacyBackupRules (Read-SafeXml $backupText); $legacyBackupRules.Add($backupText) }
+        else { Assert-BackupRules (Read-SafeXml $backupText); $backupRules.Add($backupText) }
+    }
     }
     if ($artifactHash -ne (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash) {
         throw 'The APK changed during verification; retry after the build finishes.'
     }
 } else {
-    if (-not $BackupRulesPath) { throw 'Set -BackupRulesPath when verifying a decoded manifest.' }
+    if (-not $BackupRulesPath -or -not $LegacyBackupRulesPath) { throw 'Set -BackupRulesPath and -LegacyBackupRulesPath when verifying a decoded manifest.' }
     $backupText = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $BackupRulesPath).Path)
     Assert-BackupRules (Read-SafeXml $backupText)
     $backupRules.Add($backupText)
+    $legacyText = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $LegacyBackupRulesPath).Path)
+    Assert-LegacyBackupRules (Read-SafeXml $legacyText)
+    $legacyBackupRules.Add($legacyText)
 }
 $result = [pscustomobject]@{
     SourceType = $PSCmdlet.ParameterSetName
@@ -198,6 +220,7 @@ $result = [pscustomobject]@{
     ExportedComponents = $exportedComponents
     ManifestXml = $document.OuterXml
     BackupRulesXml = $backupRules.ToArray()
+    LegacyBackupRulesXml = $legacyBackupRules.ToArray()
     Passed = $true
 }
 if ($PassThru) { $result }

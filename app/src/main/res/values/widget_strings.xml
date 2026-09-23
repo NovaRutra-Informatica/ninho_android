@@ -1,0 +1,6 @@
+<resources>
+    <string name="widget_streak_title">Minha sequência</string><string name="widget_streak_preview">0 dias</string><string name="widget_streak_detail">Seu foguinho e os dias de estudo.</string>
+    <string name="widget_today_title">Meu dia de estudo</string><string name="widget_today_preview">0 / 30 min</string><string name="widget_today_detail">Minutos da meta e matérias para revisar.</string>
+    <string name="widget_focus_title">Hora de focar</string><string name="widget_focus_preview">25 min</string><string name="widget_focus_detail">Abra seu bloco de foco com um toque.</string>
+    <string name="shortcut_focus">Hora de focar</string><string name="shortcut_reviews">Revisões</string>
+</resources>

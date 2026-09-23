@@ -1,0 +1,31 @@
+import groovy.json.JsonSlurper
+
+settingsEvaluated { settings ->
+    settings.dependencyResolutionManagement.repositories.ivy {
+        name = 'Gradle source distributions'
+        url = uri('https://downloads.gradle.org/distributions')
+        patternLayout { artifact('gradle-[revision]-src.zip') }
+        metadataSources { artifact() }
+        content { includeModule('gradle', 'gradle') }
+    }
+}
+gradle.projectsEvaluated {
+    def project = gradle.rootProject
+    project.tasks.register('verifyIdeSources') {
+        doLast {
+            def entries = new JsonSlurper().parse(new File(project.rootDir, 'security/ide-source-artifacts.json'))
+            entries.each { entry ->
+                def dependency = project.dependencies.create([group: entry.group, name: entry.name, version: entry.version])
+                dependency.transitive = false
+                dependency.artifact {
+                    name = entry.name
+                    extension = entry.artifact.endsWith('.zip') ? 'zip' : 'jar'
+                    type = extension
+                    classifier = entry.artifact.substring((entry.name + '-' + entry.version + '-').length(), entry.artifact.lastIndexOf('.'))
+                }
+                project.configurations.detachedConfiguration(dependency).resolve()
+            }
+            logger.lifecycle("Verified ${entries.size()} exact IDE source artifacts with strict dependency verification.")
+        }
+    }
+}

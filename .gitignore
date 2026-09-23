@@ -1,5 +1,6 @@
 .gradle/
 .kotlin/
+.cache/
 __pycache__/
 *.pyc
 **/build/
@@ -40,5 +41,8 @@ downloads/
 personal-data/
 *.pdf
 *.zip
+*.litertlm
+*.gguf
 
 !gradle/wrapper/gradle-wrapper.jar
+devdocs
