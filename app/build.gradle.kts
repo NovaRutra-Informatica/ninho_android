@@ -58,9 +58,9 @@ dependencies {
     constraints {
         add("secureTools", "org.apache.commons:commons-lang3:3.18.0")
         add("secureTools", "org.apache.httpcomponents:httpclient:4.5.14")
-        add("secureTools", "org.bouncycastle:bcprov-jdk18on:1.85")
-        add("secureTools", "org.bouncycastle:bcpkix-jdk18on:1.85")
-        add("secureTools", "org.bouncycastle:bcutil-jdk18on:1.85")
+        add("secureTools", "org.bouncycastle:bcprov-jdk18on:1.86")
+        add("secureTools", "org.bouncycastle:bcpkix-jdk18on:1.86")
+        add("secureTools", "org.bouncycastle:bcutil-jdk18on:1.86")
     }
 
     val composeBom = platform("androidx.compose:compose-bom:2025.08.00")
