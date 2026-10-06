@@ -56,6 +56,8 @@ function Assert-ManifestSecurity([System.Xml.XmlDocument]$Document, [string]$Pac
     Assert-FalseAttribute $application 'testOnly' $false
     if ((Get-AndroidAttribute $application 'allowBackup') -ne 'true') { throw 'Manifest policy: allowBackup must explicitly enable the compact-only backup policy.' }
     if ((Get-AndroidAttribute $application 'fullBackupContent') -notmatch '^@') { throw 'Manifest policy: fullBackupContent must reference the compact-only rules.' }
+    if ((Get-AndroidAttribute $application 'backupAgent') -notin @('.StudyBackupAgent', "$Package.StudyBackupAgent")) { throw 'Manifest policy: backupAgent must retain the explicit opt-in gate.' }
+    if ((Get-AndroidAttribute $application 'fullBackupOnly') -ne 'true') { throw 'Manifest policy: fullBackupOnly must keep restores on the compact file path.' }
     Assert-FalseAttribute $application 'usesCleartextTraffic' $true
     if ((Get-AndroidAttribute $application 'networkSecurityConfig') -ne '') {
         throw 'Manifest policy: networkSecurityConfig needs a separate policy review.'
@@ -74,10 +76,14 @@ function Assert-ManifestSecurity([System.Xml.XmlDocument]$Document, [string]$Pac
     }
     foreach ($permission in $manifest.SelectNodes('uses-permission | uses-permission-sdk-23 | uses-permission-sdk-m')) {
         $name = Get-AndroidAttribute $permission 'name'
-        $allowedNoticePermissions = @('android.permission.POST_NOTIFICATIONS', 'android.permission.RECEIVE_BOOT_COMPLETED')
+        $allowedNoticePermissions = @('android.permission.POST_NOTIFICATIONS', 'android.permission.RECEIVE_BOOT_COMPLETED', 'com.android.vending.CHECK_LICENSE')
         if (($name -ne $internalPermission -and $name -notin $allowedNoticePermissions) -or $permissionDefinitions.Count -ne 1) {
             throw "Manifest policy: unexpected requested permission: $name."
         }
+    }
+
+    if (@($manifest.SelectNodes("uses-permission[@*[local-name()='name']='com.android.vending.CHECK_LICENSE']")).Count -ne 1) {
+        throw 'Manifest policy: Google Play CHECK_LICENSE permission must be present exactly once.'
     }
 
     $namespace = [System.Xml.XmlNamespaceManager]::new($Document.NameTable)

@@ -32,7 +32,7 @@ data class StudentProfile(
     companion object { val DAYS = listOf("mon", "tue", "wed", "thu", "fri", "sat", "sun") }
 }
 
-data class UserSettings(val theme: String = "system", val reducedMotion: Boolean = false, val timerReminder: Boolean = false, val appUsage: Boolean = true)
+data class UserSettings(val theme: String = "system", val reducedMotion: Boolean = false, val timerReminder: Boolean = false, val appUsage: Boolean = true, val sound: Boolean = false, val androidBackup: Boolean = false)
 
 data class TutorialStep(val title: String, val description: String)
 object ScreenTutorials {

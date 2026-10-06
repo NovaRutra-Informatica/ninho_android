@@ -12,6 +12,17 @@ class ProfilePersistenceTest {
         assertEquals(original, StudyStore.decode(StudyStore.encode(original)))
     }
 
+    @Test fun soundAndAndroidBackupRequireOptInAndSurviveSaving() {
+        val enabled = StudyData(settings = UserSettings(sound = true, androidBackup = true))
+        assertEquals(enabled, StudyStore.decode(StudyStore.encode(enabled)))
+        val legacy = JSONObject(StudyStore.encode(enabled))
+        legacy.getJSONObject("settings").remove("sound")
+        legacy.getJSONObject("settings").remove("androidBackup")
+        val restored = StudyStore.decode(legacy.toString())
+        assertFalse(restored.settings.sound)
+        assertFalse(restored.settings.androidBackup)
+    }
+
     @Test fun versionOneMigratesWithoutLosingExistingStudyOrTimer() {
         val original = StudyData(subjects = listOf(Subject("a", "Direito")), sessions = listOf(StudySession("s", "a", 600, 1000, 2, "Resumo")), timer = FocusTimer("a", 1500, false, 120000))
         val legacy = JSONObject(StudyStore.encode(original)).put("version", 1)

@@ -76,13 +76,14 @@ object NinhoWidgets {
         val manager = AppWidgetManager.getInstance(context)
         val widgets = NinhoWidgetKind.entries.associateWith { manager.getAppWidgetIds(ComponentName(context, it.provider)) }
         val now = System.currentTimeMillis(); val zone = ZoneId.systemDefault()
-        val cached = if (rebuild) null else load(context)
-        val snapshot = try {
+        val acquired = AcquisitionFactory.create(context).cached().status == AcquisitionStatus.GRANTED
+        val cached = if (!acquired || rebuild) null else load(context)
+        val snapshot = if (!acquired) null else try {
             if (cached != null && cached.zone == zone.id && cached.capturedAt <= now) cached
-            else WidgetSnapshot.from(StudyStore(context).load(), now, zone).also { save(context, it) }
+            else WidgetSnapshot.from(StudyStore(context).load(refreshDailyBackup = false), now, zone).also { save(context, it) }
         } catch (_: Exception) { null }
         widgets.forEach { (kind, ids) -> if (ids.isNotEmpty()) manager.updateAppWidget(ids, views(context, kind, snapshot, now, zone)) }
-        scheduleMidnight(context, widgets.values.any { it.isNotEmpty() })
+        scheduleMidnight(context, acquired && widgets.values.any { it.isNotEmpty() })
     }
 
     internal fun views(context: Context, kind: NinhoWidgetKind, data: WidgetSnapshot?, now: Long, zone: ZoneId): RemoteViews {
@@ -92,6 +93,8 @@ object NinhoWidgets {
         return RemoteViews(context.packageName, kind.layout).apply {
             setOnClickPendingIntent(R.id.widget_root, open)
             val available = data?.ready == true
+            if (kind == NinhoWidgetKind.STREAK) setImageViewResource(R.id.widget_flame,
+                if (available && data?.streak(now, zone)?.studiedToday == true) R.drawable.ic_flame else R.drawable.ic_flame_inactive)
             if (!available) {
                 setTextViewText(R.id.widget_value, if (data == null) "Vamos conferir?" else "Seu ninho espera")
                 setTextViewText(R.id.widget_detail, if (data == null) "Abra o Ninho para atualizar seus registros." else "Abra o Ninho e crie seu perfil local.")

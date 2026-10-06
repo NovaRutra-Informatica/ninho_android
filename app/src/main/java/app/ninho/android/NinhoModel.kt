@@ -29,12 +29,19 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
     private val store = StudyStore(application)
     private val coach = LocalCoach(application)
     private val reminder = TimerReminder(application)
+    private val sounds = StudySoundPlayer(application)
+    private val acquisitionStore = AcquisitionFactory.create(application)
+    private var acquisitionJob: Job? = null
+    var acquisition by mutableStateOf(AcquisitionResult(AcquisitionStatus.CHECKING)); private set
+    private var soundActive = false
+    val androidBackupSupported = application.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_BACKUP)
     private val welcomePreferences = application.getSharedPreferences("welcome-flow", android.content.Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val inference = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private var aiJob: Job? = null
     private val writes = Mutex()
     private var pendingWrites = 0
+    private var loading = false
     private var foreground = false
     private var activeRoute = ""
     private val usageClock = ActiveRouteClock()
@@ -48,6 +55,7 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
     var analysisBusy by mutableStateOf(false); private set
     var focusRequest by mutableIntStateOf(0); private set
     var data by mutableStateOf(StudyData()); private set
+    var studyIndex by mutableStateOf(StudyIndex.build(data)); private set
     var profileDraft by mutableStateOf(StudentProfile()); private set
     var profileUnsaved by mutableStateOf(false); private set
     var loaded by mutableStateOf(false); private set
@@ -66,42 +74,69 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
     var lastBackupAt by mutableStateOf<Long?>(null); private set
     var pendingBackup by mutableStateOf<RestorableStudyBackup?>(null); private set
     init {
+        acquisitionJob = scope.launch {
+            acquisition = withContext(Dispatchers.IO) { acquisitionStore.cached() }
+            if (acquisition.status == AcquisitionStatus.GRANTED) loadStudies()
+        }
+        if (modelName != null) aiStatus = "Modelo importado. A compatibilidade será verificada ao gerar a orientação."
+    }
+    fun loadStudies() {
+        if (acquisition.status != AcquisitionStatus.GRANTED || loaded || loading || backupBusy) return
+        loading = true
+        error = null
         scope.launch {
             try {
-                data = withContext(Dispatchers.IO) {
+                val loadedData = withContext(Dispatchers.IO) {
                     val saved = store.load()
                     val restored = if (saved.profile.planStatus == "pending") saved.copy(profile = saved.profile.copy(planStatus = "error")) else saved
                     restored.copy(usage = UsageLedger.prune(restored.usage, System.currentTimeMillis()))
                 }
+                studyIndex = withContext(Dispatchers.Default) { StudyIndex.build(loadedData) }
+                data = loadedData
                 val savedStep = withContext(Dispatchers.IO) { welcomePreferences.getInt("question-step-v2", 0) }
                 welcomeStep = WelcomeFlow.resumeAt(savedStep, data.profile)
                 loaded = true
                 profileDraft = data.profile
                 updateBackupStatus()
-                try { withContext(Dispatchers.IO) { StudyBackupJob.schedule(application) } }
+                try { withContext(Dispatchers.IO) { StudyBackupJob.schedule(getApplication()) } }
                 catch (_: Exception) { backupNotice = "A cópia diária continua ao abrir ou salvar estudos. O Android não permitiu agendar a execução em repouso." }
                 if (foreground) { beginUsageVisit(); requestAnalysis(force = true) }
                 syncReminder()
                 syncWidgets()
                 if (data.profile.planStatus == "error") aiStatus = "A última análise não foi concluída. Seu perfil está salvo; você pode gerar o plano novamente."
             }
-            catch (_: Exception) { error = "Não foi possível ler seus estudos. Os arquivos foram preservados. Reinicie o app para tentar novamente." }
+            catch (failure: UnreadableStudyBackup) { error = failure.message; backupNotice = failure.message }
+            catch (_: Exception) { error = "Não foi possível ler seus estudos. Os arquivos foram preservados. Tente novamente."; backupNotice = error }
+            finally { loading = false }
         }
-        if (modelName != null) aiStatus = "Modelo importado. A compatibilidade será verificada ao gerar a orientação."
+    }
+    fun verifyAcquisition() {
+        if (acquisitionJob?.isActive == true) return
+        acquisitionJob = scope.launch {
+            acquisition = AcquisitionResult(AcquisitionStatus.CHECKING)
+            acquisition = withContext(Dispatchers.IO) { acquisitionStore.verify() }
+            if (acquisition.status == AcquisitionStatus.GRANTED) loadStudies()
+        }
     }
     fun dismissError() { error = null }
-    private fun change(afterSaved: (() -> Unit)? = null, onFailure: (() -> Unit)? = null, transform: (StudyData) -> StudyData) {
-        if (!loaded) return
+    private fun change(afterSaved: (() -> Unit)? = null, onFailure: (() -> Unit)? = null, cue: StudySoundCue? = null, transform: (StudyData) -> StudyData) {
+        if (!loaded || acquisition.status != AcquisitionStatus.GRANTED) return
         pendingWrites++; saving = true
         scope.launch {
             try {
                 writes.withLock {
                     val previous = data
                     val next = transform(previous)
-                    withContext(Dispatchers.IO) { store.save(next) }
+                    val nextIndex = if (studyIndex.matches(next)) studyIndex else withContext(Dispatchers.Default) { StudyIndex.build(next) }
+                    val completedStudy = next.sessions != previous.sessions || next.attempts != previous.attempts
+                    if (completedStudy) backupRefreshJob?.cancel()
+                    withContext(Dispatchers.IO) { store.save(next, immediateBackup = completedStudy) }
+                    studyIndex = nextIndex
                     data = next
+                    if (!next.settings.sound) sounds.stop()
+                    else if (cue != null && next != previous) sounds.play(cue, soundActive)
                     updateBackupStatus()
-                    queueBackupRefresh()
+                    if (!completedStudy) queueBackupRefresh()
                     if (next.sessions != previous.sessions || next.attempts != previous.attempts || next.subjects != previous.subjects || next.profile.dailyMinutes != previous.profile.dailyMinutes || next.profile.completedAt != previous.profile.completedAt || next.timer != previous.timer) syncWidgets()
                     if (next.timer != previous.timer || next.settings.timerReminder != previous.settings.timerReminder)
                         syncReminder()
@@ -148,7 +183,7 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun inspectBackup(uri: Uri) {
-        if (!loaded || backupBusy) return
+        if (backupBusy) return
         backupBusy = true
         scope.launch {
             try {
@@ -170,8 +205,12 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
         scope.launch {
             try {
                 writes.withLock {
+                    val restoredIndex = withContext(Dispatchers.Default) { StudyIndex.build(proposed.data) }
                     withContext(Dispatchers.IO) { store.restoreBackup(proposed.data) }
+                    studyIndex = restoredIndex
                     data = proposed.data
+                    loaded = true
+                    error = null
                     profileDraft = data.profile
                     profileUnsaved = false
                     welcomeStep = WelcomeFlow.resumeAt(0, data.profile)
@@ -187,7 +226,17 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
     }
     fun updateTheme(theme: String) = change { it.copy(settings = it.settings.copy(theme = theme.takeIf { t -> t in listOf("system", "light", "dark") } ?: "system")) }
     fun updateReducedMotion(reduced: Boolean) = change { it.copy(settings = it.settings.copy(reducedMotion = reduced)) }
-    fun tutorialSeen(route: String) = change { it.copy(tutorialsSeen = it.tutorialsSeen + route) }
+    fun updateSound(enabled: Boolean) = change { it.copy(settings = it.settings.copy(sound = enabled)) }
+    fun setSoundActive(active: Boolean) { soundActive = active; if (!active) sounds.stop() }
+    fun playNavigationSound() = sounds.play(StudySoundCue.NAVIGATION, soundActive && data.settings.sound)
+    fun updateAndroidBackup(enabled: Boolean) {
+        if (enabled && !androidBackupSupported) return
+        change { it.copy(settings = it.settings.copy(androidBackup = enabled)) }
+    }
+    fun tutorialSeen(route: String, afterSaved: () -> Unit, onFailure: () -> Unit) {
+        if (route !in ScreenTutorials.routes || !loaded) { onFailure(); return }
+        change(afterSaved = afterSaved, onFailure = onFailure) { it.copy(tutorialsSeen = it.tutorialsSeen + route) }
+    }
     fun resetTutorials() = change { it.copy(tutorialsSeen = emptySet()) }
     fun updateTimerReminder(enabled: Boolean) = change { it.copy(settings = it.settings.copy(timerReminder = enabled)) }
     fun canNotify() = reminder.canNotify()
@@ -289,7 +338,7 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
         val normalized = name.trim().take(80)
         if (normalized.isEmpty()) return
         if (data.subjects.any { it.name.equals(normalized, true) }) { error = "Essa matéria já está no seu ninho."; return }
-        change { it.copy(subjects = it.subjects + Subject(name = normalized)) }
+        change(cue = StudySoundCue.SAVE) { it.copy(subjects = it.subjects + Subject(name = normalized)) }
     }
     fun configureTimer(subject: String = data.timer.subjectId, minutes: Int = (data.timer.targetSeconds / 60).toInt(), stopwatch: Boolean = data.timer.stopwatch) {
         if (data.timer.running || data.timer.elapsedMillis > 0) return
@@ -311,13 +360,13 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
         val timer = data.timer
         val seconds = timer.elapsed(SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount) / 1000
         if (seconds < 1 || timer.subjectId.isBlank()) return
-        change { it.copy(sessions = it.sessions + StudySession(subjectId = timer.subjectId, seconds = seconds, at = System.currentTimeMillis(), rating = rating.coerceIn(1, 3), note = note.trim().take(1000)), timer = FocusTimer(subjectId = timer.subjectId, targetSeconds = timer.targetSeconds, stopwatch = timer.stopwatch)) }
+        change(cue = StudySoundCue.FOCUS_DONE) { it.copy(sessions = it.sessions + StudySession(subjectId = timer.subjectId, seconds = seconds, at = System.currentTimeMillis(), rating = rating.coerceIn(1, 3), note = note.trim().take(1000)), timer = FocusTimer(subjectId = timer.subjectId, targetSeconds = timer.targetSeconds, stopwatch = timer.stopwatch)) }
     }
     fun addQuestion(subject: String, prompt: String, answer: String) {
         if (subject.isBlank() || prompt.isBlank() || answer.isBlank()) return
-        change { it.copy(questions = it.questions + Question(subjectId = subject, prompt = prompt.trim().take(2000), answer = answer.trim().take(3000))) }
+        change(cue = StudySoundCue.SAVE) { it.copy(questions = it.questions + Question(subjectId = subject, prompt = prompt.trim().take(2000), answer = answer.trim().take(3000))) }
     }
-    fun answer(question: Question, correct: Boolean, response: String) = change { it.copy(attempts = it.attempts + Attempt(question.id, question.subjectId, correct, System.currentTimeMillis(), response.trim().take(3000))) }
+    fun answer(question: Question, correct: Boolean, response: String) = change(cue = StudySoundCue.REVIEW) { it.copy(attempts = it.attempts + Attempt(question.id, question.subjectId, correct, System.currentTimeMillis(), response.trim().take(3000))) }
     fun importModel(uri: Uri) {
         if (aiBusy) return
         aiBusy = true; aiStatus = "Copiando modelo para este aparelho…"
@@ -359,5 +408,5 @@ class NinhoModel(application: Application) : AndroidViewModel(application) {
             finally { aiBusy = false }
         }
     }
-    override fun onCleared() { coach.cancel(); scope.cancel(); inference.close() }
+    override fun onCleared() { sounds.stop(); coach.cancel(); scope.cancel(); inference.close() }
 }

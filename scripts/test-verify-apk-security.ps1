@@ -39,9 +39,16 @@ try {
         @{ Name = 'compact backup disabled'; Error = 'allowBackup'; Change = { param($xml) $xml.manifest.application.SetAttribute('allowBackup', $androidNamespace, 'false') } },
         @{ Name = 'implicit default backup'; Error = 'allowBackup'; Change = { param($xml) $xml.manifest.application.RemoveAttribute('allowBackup', $androidNamespace) } },
         @{ Name = 'full backup enabled'; Error = 'fullBackupContent'; Change = { param($xml) $xml.manifest.application.SetAttribute('fullBackupContent', $androidNamespace, 'true') } },
+        @{ Name = 'backup opt-in gate removed'; Error = 'backupAgent'; Change = { param($xml) $xml.manifest.application.RemoveAttribute('backupAgent', $androidNamespace) } },
+        @{ Name = 'unexpected backup agent'; Error = 'backupAgent'; Change = { param($xml) $xml.manifest.application.SetAttribute('backupAgent', $androidNamespace, '.OtherAgent') } },
+        @{ Name = 'key-value backup enabled'; Error = 'fullBackupOnly'; Change = { param($xml) $xml.manifest.application.SetAttribute('fullBackupOnly', $androidNamespace, 'false') } },
         @{ Name = 'cleartext enabled'; Error = 'usesCleartextTraffic'; Change = { param($xml) $xml.manifest.application.SetAttribute('usesCleartextTraffic', $androidNamespace, 'true') } },
         @{ Name = 'network policy override'; Error = 'networkSecurityConfig'; Change = { param($xml) $xml.manifest.application.SetAttribute('networkSecurityConfig', $androidNamespace, '@xml/unsafe_network') } },
         @{ Name = 'test-only application'; Error = 'testOnly'; Change = { param($xml) $xml.manifest.application.SetAttribute('testOnly', $androidNamespace, 'true') } },
+        @{ Name = 'purchase verification permission removed'; Error = 'CHECK_LICENSE'; Change = { param($xml)
+            $node = $xml.SelectSingleNode("/manifest/uses-permission[@*[local-name()='name']='com.android.vending.CHECK_LICENSE']")
+            $xml.manifest.RemoveChild($node)
+        } },
         @{ Name = 'new Internet permission'; Error = 'unexpected requested permission'; Change = { param($xml)
             $node = $xml.CreateElement('uses-permission')
             $node.SetAttribute('name', $androidNamespace, 'android.permission.INTERNET')
@@ -101,6 +108,11 @@ try {
         } },
         @{ Name = 'cloud backup of preferences'; Error = 'only the compact snapshot'; Change = { param($xml)
             $xml.SelectSingleNode('/data-extraction-rules/cloud-backup/include').SetAttribute('domain', 'sharedpref')
+        } },
+        @{ Name = 'cloud backup of purchase proof'; Error = 'only the compact snapshot'; Change = { param($xml)
+            $node = $xml.SelectSingleNode('/data-extraction-rules/cloud-backup/include')
+            $node.SetAttribute('domain', 'root')
+            $node.SetAttribute('path', 'no_backup/play-acquisition-v1.bin')
         } },
         @{ Name = 'cloud backup without encryption'; Error = 'encryption capabilities'; Change = { param($xml)
             $xml.SelectSingleNode('/data-extraction-rules/cloud-backup').RemoveAttribute('disableIfNoEncryptionCapabilities')

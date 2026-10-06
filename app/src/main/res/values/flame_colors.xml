@@ -1,0 +1,4 @@
+<resources>
+    <color name="flame_inactive_outer">#8A949F</color>
+    <color name="flame_inactive_inner">#D7DCE1</color>
+</resources>

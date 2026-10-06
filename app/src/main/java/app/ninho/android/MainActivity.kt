@@ -9,6 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
@@ -19,6 +25,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,8 +34,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -64,8 +73,8 @@ class MainActivity : ComponentActivity() {
         handleNotification(intent)
         setContent { NinhoApp(model) }
     }
-    override fun onResume() { super.onResume(); resumed = true; model.setForeground(hasWindowFocus()) }
-    override fun onPause() { model.setForeground(false); resumed = false; super.onPause() }
+    override fun onResume() { super.onResume(); resumed = true; model.setSoundActive(true); model.setForeground(hasWindowFocus()) }
+    override fun onPause() { model.setSoundActive(false); model.setForeground(false); resumed = false; super.onPause() }
     override fun onWindowFocusChanged(hasFocus: Boolean) { super.onWindowFocusChanged(hasFocus); if (::model.isInitialized) model.setForeground(resumed && hasFocus) }
     override fun onUserInteraction() { super.onUserInteraction(); if (::model.isInitialized) model.recordInteraction() }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); handleNotification(intent) }
@@ -91,6 +100,8 @@ private val displayFont = NinhoDisplayFont
         var showStudyCalendar by rememberSaveable { mutableStateOf(false) }
         var tutorial by rememberSaveable { mutableStateOf<String?>(null) }
         var enteredRoute by remember { mutableStateOf<String?>(null) }
+        val pageState = rememberSaveableStateHolder()
+        val pageOffset = with(LocalDensity.current) { 6.dp.roundToPx() }
         val route = ScreenTutorials.routes[tab.coerceIn(0, 5)]
         val welcome = model.data.profile.completedAt == null || model.onboardingProcessing
         LaunchedEffect(model.focusRequest, welcome) { if (model.focusRequest > 0 && !welcome) tab = 2 }
@@ -99,49 +110,57 @@ private val displayFont = NinhoDisplayFont
             model.visitRoute(if (model.loaded && !welcome) route else "")
             if (model.loaded && !welcome && enteredRoute != route) {
                 enteredRoute = route
+                model.playNavigationSound()
                 if (route !in model.data.tutorialsSeen) tutorial = route
             }
         }
-        if (!model.loaded) Surface(Modifier.fillMaxSize(), color = scheme.background) {
+        if (model.acquisition.status != AcquisitionStatus.GRANTED) AcquisitionScreen(model.acquisition, model::verifyAcquisition)
+        else if (!model.loaded) Surface(Modifier.fillMaxSize(), color = scheme.background) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(if (model.error == null) "Preparando seu ninho…" else "Seus dados precisam de atenção.")
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(if (model.error == null && model.backupNotice == null) "Preparando seu ninho…" else "Seus dados precisam de atenção.")
+                    if (model.error != null || model.backupNotice != null) {
+                        Button(onClick = model::loadStudies) { Text("Tentar novamente") }
+                        BackupControls(model, firstRun = true)
+                    }
+                }
             }
         } else if (welcome) Welcome(model)
-        else Scaffold(containerColor = scheme.background, bottomBar = { BottomDock(tab) { tab = it } }) { padding ->
+        else Scaffold(containerColor = scheme.background, bottomBar = { BottomDock(tab, reducedMotion(model.data.settings.reducedMotion)) { tab = it } }) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Image(painterResource(R.drawable.owl), "Coruja Ninho", Modifier.size(44.dp))
+                    NinhoMascot(44.dp, model.data.settings.reducedMotion)
                     Text("ninho", Modifier.padding(start = 7.dp).weight(1f), fontFamily = displayFont, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    StreakHeaderButton(model.data) { showStudyCalendar = true }
+                    StreakHeaderButton(model.data) { model.playNavigationSound(); showStudyCalendar = true }
                     IconButton(onClick = { tab = 5 }, modifier = Modifier.size(48.dp)) { Icon(painterResource(R.drawable.ic_profile), "Meu perfil", Modifier.size(24.dp)) }
-                    IconButton(onClick = { tutorial = route }, modifier = Modifier.size(48.dp)) { Icon(painterResource(R.drawable.ic_help), "Ajuda desta tela", Modifier.size(24.dp)) }
+                    IconButton(onClick = { model.playNavigationSound(); tutorial = route }, modifier = Modifier.size(48.dp)) { Icon(painterResource(R.drawable.ic_help), "Ajuda desta tela", Modifier.size(24.dp)) }
                 }
                 val pageContent: @Composable (Int) -> Unit = { page ->
-                    when (page) {
+                    pageState.SaveableStateProvider(page) { when (page) {
                         0 -> Home(model, onFocus = { tab = 2 }, onSubject = { showSubject = true }, onReview = { tab = 3 }, onAssistant = { tab = 4 }, onInsight = { insight -> model.prepareInsight(insight); tab = insightTab(insight.route) })
                         1 -> Subjects(model) { showSubject = true }
                         2 -> Focus(model) { showSubject = true }
                         3 -> Review(model) { showSubject = true }
                         4 -> AssistantPage(model) { insight -> model.prepareInsight(insight); tab = insightTab(insight.route) }
-                        else -> ProfilePage(model, onAssistant = { tab = 4 }, onTutorial = { tutorial = route })
-                    }
+                        else -> ProfilePage(model, onAssistant = { tab = 4 }, onTutorial = { model.playNavigationSound(); tutorial = route })
+                    } }
                 }
-                if (model.data.settings.reducedMotion) pageContent(tab)
-                else AnimatedContent(tab, label = "Navegação") { pageContent(it) }
+                if (reducedMotion(model.data.settings.reducedMotion)) pageContent(tab)
+                else AnimatedContent(tab, transitionSpec = { (fadeIn(tween(220)) + slideInVertically(tween(220)) { pageOffset }) togetherWith fadeOut(tween(140)) }, label = "Navegação") { pageContent(it) }
             }
         }
         if (showSubject) SubjectDialog(model) { showSubject = false }
-        if (!welcome && showStudyCalendar) StudyCalendarDialog(model.data) { showStudyCalendar = false }
-        if (!welcome) tutorial?.let { current -> TutorialDialog(current) { tutorial = null; model.tutorialSeen(current) } }
+        if (!welcome && showStudyCalendar) StudyCalendarDialog(model.data, onNavigate = model::playNavigationSound) { showStudyCalendar = false }
+        if (!welcome) tutorial?.let { current -> TutorialDialog(current, model) { tutorial = null } }
         model.error?.let { message -> AlertDialog(onDismissRequest = model::dismissError, title = { Text("Um cuidado antes de continuar") }, text = { Text(message) }, confirmButton = { TextButton(onClick = model::dismissError) { Text("Entendi") } }) }
     }
 }
 
-@Composable private fun BottomDock(selected: Int, onSelect: (Int) -> Unit) {
+@Composable private fun BottomDock(selected: Int, reduced: Boolean, onSelect: (Int) -> Unit) {
     Surface(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp), shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = .94f), shadowElevation = 8.dp) {
         Row(Modifier.padding(7.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             listOf("Hoje", "Estudos", "Foco", "Revisões", "Assistente").forEachIndexed { index, label ->
-                val color by animateColorAsState(if (selected == index) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent, label = "Seleção")
+                val color by animateColorAsState(if (selected == index) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent, animationSpec = if (reduced) snap() else tween(180), label = "Seleção")
                 Column(Modifier.weight(1f).clip(RoundedCornerShape(22.dp)).background(color).clickable { onSelect(index) }.padding(vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     LineIcon(index, MaterialTheme.colorScheme.onSurface)
                     Text(label, fontSize = 10.sp, fontWeight = if (selected == index) FontWeight.Bold else FontWeight.Normal)
@@ -179,7 +198,9 @@ private val displayFont = NinhoDisplayFont
 @Composable private fun Home(model: NinhoModel, onFocus: () -> Unit, onSubject: () -> Unit, onReview: () -> Unit, onAssistant: () -> Unit, onInsight: (LocalInsight) -> Unit) {
     val data = model.data
     val now = rememberStudyClock()
-    val next = StudyCoach.suggestions(data, now).firstOrNull()
+    val index = model.studyIndex
+    val next = remember(index, now) { StudyCoach.suggestions(data, now, index).firstOrNull() }
+    val todaySeconds = remember(data.sessions, now) { StudyCoach.secondsToday(data, now) }
     LazyColumn(contentPadding = PaddingValues(start=24.dp,end=24.dp,top=14.dp,bottom=20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         item { Heading("Aprender, no seu ritmo.", "Um espaço tranquilo para cultivar o que você sabe.") }
         item { Surface(color = Forest, shape = RoundedCornerShape(30.dp)) {
@@ -189,12 +210,12 @@ private val displayFont = NinhoDisplayFont
                         Text("Um pequeno passo\nvale muito.", color = Color.White, fontFamily = displayFont, fontSize = 29.sp, lineHeight = 35.sp)
                         Text(if (data.timer.running) "Sua sessão continua em andamento." else "Separe um tempo só para aprender.", color = Color(0xFFD9E8DE), fontSize = 14.sp, lineHeight = 21.sp)
                     }
-                    Image(painterResource(R.drawable.owl), null, Modifier.size(112.dp))
+                    NinhoMascot(112.dp, data.settings.reducedMotion)
                 }
                 Button(onClick = if (data.subjects.isEmpty()) onSubject else onFocus, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE6ECCF), contentColor = Ink), shape = CircleShape) { Text(if (data.subjects.isEmpty()) "Adicionar minha primeira matéria" else if (data.timer.running) "Voltar ao meu foco" else "Começar a estudar", Modifier.padding(vertical = 4.dp)) }
             }
         } }
-        item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) { Metric("${StudyCoach.secondsToday(data,now)/60} min","de cuidado hoje",Modifier.weight(1f)); Metric("${data.sessions.size}","sessões registradas",Modifier.weight(1f)) } }
+        item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) { Metric("${todaySeconds/60} min","de cuidado hoje",Modifier.weight(1f)); Metric("${data.sessions.size}","sessões registradas",Modifier.weight(1f)) } }
         item { SectionTitle("Sua assistente percebeu", "Ver tudo", onAssistant) }
         items(model.analysis.cards.take(2), key = { "insight-${it.id}" }) { insight -> InsightCard(insight) { onInsight(insight) } }
         item { SectionTitle("Seu próximo passo", "Ver revisões", onReview) }
@@ -213,22 +234,23 @@ private val displayFont = NinhoDisplayFont
     }
 }
 @Composable private fun Subjects(model: NinhoModel,onAdd:()->Unit) {
+    val index = model.studyIndex
     LazyColumn(contentPadding=PaddingValues(24.dp),verticalArrangement=Arrangement.spacedBy(18.dp)) {
         item { Heading("O que você cultiva?","Cada matéria tem seu tempo. Acompanhe o seu caminho de perto.") }
         item { Button(onClick=onAdd,enabled=!model.saving,shape=CircleShape) { Text("+  Nova matéria") } }
         if(model.data.subjects.isEmpty()) item { EmptyState("Seu ninho está pronto","Adicione uma matéria para vincular suas sessões e questões.","Adicionar matéria",onAdd) }
         items(model.data.subjects,key={it.id}) { subject ->
-            val sessions=model.data.sessions.filter{it.subjectId==subject.id}; val attempts=model.data.attempts.filter{it.subjectId==subject.id}
+            val sessions=index.sessionsBySubject[subject.id] ?: SessionTotals(); val attempts=index.attemptsBySubject[subject.id] ?: AttemptTotals()
             Panel {
                 Row(verticalAlignment=Alignment.CenterVertically) { Surface(shape=RoundedCornerShape(15.dp),color=MaterialTheme.colorScheme.secondaryContainer) { Text(subject.name.take(1).uppercase(),Modifier.padding(16.dp),fontSize=22.sp,fontFamily=displayFont) }; Text(subject.name,Modifier.padding(start=15.dp).weight(1f),fontSize=23.sp,fontWeight=FontWeight.SemiBold) }
-                Text("${sessions.sumOf{it.seconds}/60} minutos estudados  •  ${sessions.size} sessões",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=13.sp)
-                Text(if(attempts.isEmpty()) "Registre questões para acompanhar o que precisa de atenção." else "${attempts.count{it.correct}} de ${attempts.size} respostas marcadas como corretas",fontSize=13.sp,lineHeight=20.sp)
+                Text("${sessions.seconds/60} minutos estudados  •  ${sessions.count} sessões",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=13.sp)
+                Text(if(attempts.count == 0) "Registre questões para acompanhar o que precisa de atenção." else "${attempts.correct} de ${attempts.count} respostas marcadas como corretas",fontSize=13.sp,lineHeight=20.sp)
             }
         }
     }
 }
 @Composable private fun SubjectPicker(data: StudyData,selected:String,enabled:Boolean=true,onSelect:(String)->Unit) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { data.subjects.forEach { subject -> FilterChip(selected=subject.id==selected,onClick={onSelect(subject.id)},enabled=enabled,label={Text(subject.name)},shape=CircleShape) } }
+    LazyRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) { items(data.subjects, key = { it.id }) { subject -> FilterChip(selected=subject.id==selected,onClick={onSelect(subject.id)},enabled=enabled,label={Text(subject.name)},shape=CircleShape) } }
 }
 @Composable private fun Focus(model:NinhoModel,onAdd:()->Unit) {
     val timer=model.data.timer
@@ -249,7 +271,7 @@ private val displayFont = NinhoDisplayFont
         else item { SubjectPicker(model.data,timer.subjectId,editable) { model.configureTimer(subject=it) } }
         item { Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { FilterChip(selected=!timer.stopwatch,onClick={model.configureTimer(stopwatch=false)},enabled=editable,label={Text("Temporizador")}); FilterChip(selected=timer.stopwatch,onClick={model.configureTimer(stopwatch=true)},enabled=editable,label={Text("Cronômetro livre")}) } }
         item {
-            val fraction by animateFloatAsState(if(timer.stopwatch)(elapsed/3_600_000f).coerceAtMost(1f) else elapsed.toFloat()/(timer.targetSeconds*1000f),label="Progresso do foco")
+            val fraction by animateFloatAsState(if(timer.stopwatch)(elapsed/3_600_000f).coerceAtMost(1f) else elapsed.toFloat()/(timer.targetSeconds*1000f),animationSpec=if(reducedMotion(model.data.settings.reducedMotion)) snap() else tween(180),label="Progresso do foco")
             val displayed=if(timer.stopwatch) elapsed/1000 else ((timer.targetSeconds*1000-elapsed).coerceAtLeast(0)+999)/1000
             val ring=MaterialTheme.colorScheme.secondaryContainer;val accent=MaterialTheme.colorScheme.primary
             Box(Modifier.sizeIn(maxWidth=300.dp).fillMaxWidth().aspectRatio(1f),contentAlignment=Alignment.Center) {
@@ -290,20 +312,22 @@ private val displayFont = NinhoDisplayFont
 }
 @Composable private fun Review(model:NinhoModel,onAddSubject:()->Unit) {
     var add by rememberSaveable{mutableStateOf(false)};var questionId by rememberSaveable{mutableStateOf<String?>(null)}
-    val suggestions=StudyCoach.suggestions(model.data,System.currentTimeMillis())
+    val now = rememberStudyClock()
+    val index = model.studyIndex
+    val suggestions = remember(index, now) { StudyCoach.suggestions(model.data, now, index) }
     LazyColumn(contentPadding=PaddingValues(24.dp),verticalArrangement=Arrangement.spacedBy(18.dp)){
         item{Heading("Lembrar é aprender.","Volte ao que merece atenção e teste sua memória sem consultar.")}
         if(suggestions.isEmpty()) item{EmptyState("Prepare suas primeiras revisões","O Ninho combina seu tempo de estudo, suas avaliações e os erros nas questões.","Adicionar matéria",onAddSubject)}
-        items(suggestions.take(6),key={it.subject.id}){suggestion->Panel{Text(suggestion.subject.name,fontWeight=FontWeight.SemiBold,fontSize=20.sp);Text(suggestion.reason,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
+        items(suggestions.take(6),key={"suggestion-${it.subject.id}"}, contentType={"suggestion"}){suggestion->Panel{Text(suggestion.subject.name,fontWeight=FontWeight.SemiBold,fontSize=20.sp);Text(suggestion.reason,lineHeight=22.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}}
         item{SectionTitle("Suas questões","+ Adicionar",onClick={if(model.data.subjects.isEmpty())onAddSubject() else add=true})}
         if(model.data.questions.isEmpty())item{Text("Adicione uma pergunta e seu gabarito. Depois de responder de memória, compare e avalie sua resposta.",color=MaterialTheme.colorScheme.onSurfaceVariant,lineHeight=23.sp)}
-        items(model.data.questions,key={it.id}){question->
-            val attempts=model.data.attempts.filter{it.questionId==question.id}
-            Panel{Text(model.data.subjects.find{it.id==question.subjectId}?.name.orEmpty(),fontSize=12.sp,color=MaterialTheme.colorScheme.primary);Text(question.prompt,fontSize=18.sp,lineHeight=25.sp);Text(if(attempts.isEmpty())"Ainda não praticada" else "${attempts.count{it.correct}} acertos em ${attempts.size} tentativas",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant);OutlinedButton(onClick={questionId=question.id},enabled=!model.saving){Text("Praticar de memória")}}
+        items(model.data.questions,key={"question-${it.id}"}, contentType={"question"}){question->
+            val attempts=index.attemptsByQuestion[question.id] ?: AttemptTotals()
+            Panel{Text(index.subjects[question.subjectId]?.name.orEmpty(),fontSize=12.sp,color=MaterialTheme.colorScheme.primary);Text(question.prompt,fontSize=18.sp,lineHeight=25.sp);Text(if(attempts.count == 0)"Ainda não praticada" else "${attempts.correct} acertos em ${attempts.count} tentativas",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant);OutlinedButton(onClick={questionId=question.id},enabled=!model.saving){Text("Praticar de memória")}}
         }
     }
     if(add)QuestionDialog(model){add=false}
-    model.data.questions.find{it.id==questionId}?.let{question->PracticeDialog(question,onAnswer={correct,response->model.answer(question,correct,response);questionId=null},close={questionId=null})}
+    index.questions[questionId]?.let{question->PracticeDialog(question,onAnswer={correct,response->model.answer(question,correct,response);questionId=null},close={questionId=null})}
 }
 @Composable private fun QuestionDialog(model:NinhoModel,close:()->Unit) {
     var subject by rememberSaveable{mutableStateOf(model.data.subjects.firstOrNull()?.id.orEmpty())};var prompt by rememberSaveable{mutableStateOf("")};var answer by rememberSaveable{mutableStateOf("")}

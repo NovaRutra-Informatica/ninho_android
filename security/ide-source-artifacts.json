@@ -846,5 +846,45 @@
     "artifact": "zipflinger-9.3.1-sources.jar",
     "url": "https://dl.google.com/dl/android/maven2/com/android/zipflinger/9.3.1/zipflinger-9.3.1-sources.jar",
     "sha256": "2516f5ce35477329e2ba9e2a99f36b5bc06d6c454ff9a4ce0601826a74424547"
+  },
+  {
+    "group": "org.jetbrains.kotlin",
+    "name": "compose-compiler-gradle-plugin",
+    "version": "2.4.20",
+    "artifact": "compose-compiler-gradle-plugin-2.4.20-sources.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/compose-compiler-gradle-plugin/2.4.20/compose-compiler-gradle-plugin-2.4.20-sources.jar",
+    "sha256": "0271ceab73f0601bd77836a31a8508756053ccab49aab5c2c8f9038c775701b9"
+  },
+  {
+    "group": "org.jetbrains.kotlin",
+    "name": "fus-statistics-gradle-plugin",
+    "version": "2.4.20",
+    "artifact": "fus-statistics-gradle-plugin-2.4.20-sources.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/fus-statistics-gradle-plugin/2.4.20/fus-statistics-gradle-plugin-2.4.20-sources.jar",
+    "sha256": "25225642ec723c9ea8e4c493e6362d84a796476e37df6e688d9de8fb415d9048"
+  },
+  {
+    "group": "org.jetbrains.kotlin",
+    "name": "kotlin-gradle-plugin",
+    "version": "2.4.20",
+    "artifact": "kotlin-gradle-plugin-2.4.20-sources.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.4.20/kotlin-gradle-plugin-2.4.20-sources.jar",
+    "sha256": "5b411eb2de60a7823ad457a247284180c57087b9ae024a2566b1a5261f32c22d"
+  },
+  {
+    "group": "org.jetbrains.kotlin",
+    "name": "kotlin-gradle-plugin-api",
+    "version": "2.4.20",
+    "artifact": "kotlin-gradle-plugin-api-2.4.20-sources.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.4.20/kotlin-gradle-plugin-api-2.4.20-sources.jar",
+    "sha256": "87ccb420a02be1db37ee5c6693cfd0bd0918f49371df370d4228484b0125774b"
+  },
+  {
+    "group": "com.google.guava",
+    "name": "guava",
+    "version": "33.4.0-jre",
+    "artifact": "guava-33.4.0-jre-sources.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.4.0-jre/guava-33.4.0-jre-sources.jar",
+    "sha256": "55ef6603b6ab1f6e3ae810b127561650ed682eb5f3fb50a212a658a74087b457"
   }
 ]

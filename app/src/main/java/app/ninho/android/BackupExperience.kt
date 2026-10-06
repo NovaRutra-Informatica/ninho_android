@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,10 +29,16 @@ import java.util.Locale
         model.backupNotice?.let { Text(it, fontSize = 12.sp, lineHeight = 19.sp) }
     } else Panel {
         Text("Seu caminho está guardado", fontFamily = NinhoDisplayFont, fontSize = 25.sp)
-        Text("Uma cópia leve por dia, atualizada conforme você estuda. Mantemos os últimos sete dias neste aparelho.", lineHeight = 22.sp)
+        Text("Uma cópia leve por dia, atualizada ao registrar estudos e revisões. Mantemos os últimos sete dias neste aparelho; essas cópias são apagadas ao desinstalar o Ninho.", lineHeight = 22.sp)
         model.lastBackupAt?.let { Text("Última cópia local: ${backupDate(it)}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary) }
         Text("Inclui perfil, matérias, sessões, questões, respostas, preferências e plano salvo da assistente. Não inclui arquivos ou modelos de IA.", fontSize = 13.sp, lineHeight = 21.sp)
-        Text("Com o backup do Android ativado, o sistema pode guardar a cópia leve e recuperá-la em uma nova instalação. O horário e o envio dependem do Android e da sua conta.", fontSize = 13.sp, lineHeight = 21.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Permitir backup do Android", Modifier.weight(1f))
+            Switch(checked = model.data.settings.androidBackup && model.androidBackupSupported,
+                onCheckedChange = model::updateAndroidBackup, enabled = model.androidBackupSupported && !model.saving)
+        }
+        Text(if (model.androidBackupSupported) "O aparelho oferece backup do Android. Ative também o backup nas configurações do sistema. O Ninho não consegue confirmar a conta, a disponibilidade na nuvem ou o envio; o Android decide quando copiar e recuperar. Desativar aqui interrompe novos envios, sem pedir a exclusão de cópias anteriores."
+            else "O backup do Android não está disponível nesta instalação. Exporte uma cópia para fora do aplicativo para proteger seus estudos.", fontSize = 13.sp, lineHeight = 21.sp)
         TextButton(onClick = {
             try { context.startActivity(Intent("android.settings.BACKUP_SETTINGS")) }
             catch (_: ActivityNotFoundException) { context.startActivity(Intent(Settings.ACTION_SETTINGS)) }

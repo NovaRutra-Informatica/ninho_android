@@ -1,4 +1,6 @@
 import groovy.json.JsonSlurper
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmEnvironment
 
 settingsEvaluated { settings ->
     settings.dependencyResolutionManagement.repositories.ivy {
@@ -23,7 +25,12 @@ gradle.projectsEvaluated {
                     type = extension
                     classifier = entry.artifact.substring((entry.name + '-' + entry.version + '-').length(), entry.artifact.lastIndexOf('.'))
                 }
-                project.configurations.detachedConfiguration(dependency).resolve()
+                def sources = project.configurations.detachedConfiguration(dependency)
+                sources.attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                    attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, project.objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM))
+                }
+                sources.resolve()
             }
             logger.lifecycle("Verified ${entries.size()} exact IDE source artifacts with strict dependency verification.")
         }

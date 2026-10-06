@@ -92,6 +92,29 @@ class StudyBackupsTest {
         assertEquals("broken", latest.readText())
     }
 
+    @Test fun allInvalidSnapshotsBlockEmptyStartupAndRemainIntactAcrossRetries() {
+        val latest = File(folder.root, "cloud/latest.ninho-backup.gz").apply { parentFile!!.mkdirs(); writeText("damaged cloud copy") }
+        val archive = File(folder.root, "daily/2026-09-22.ninho-backup.gz").apply { parentFile!!.mkdirs(); writeText("damaged local copy") }
+        repeat(2) { assertThrows(UnreadableStudyBackup::class.java) { repo().restoreIfEmpty(false) } }
+        assertEquals("damaged cloud copy", latest.readText())
+        assertEquals("damaged local copy", archive.readText())
+        assertNull(repo().restoreIfEmpty(true))
+    }
+
+    @Test fun trulyEmptyInstallationHasNoRecoveryAndNoSeededSnapshot() {
+        assertNull(repo().restoreIfEmpty(false))
+        assertFalse(repo().updateIfDue(StudyData(), now, zone))
+        assertFalse(File(folder.root, "cloud/latest.ninho-backup.gz").exists())
+    }
+
+    @Test fun manualRecoveryPreservesTheOriginalUnreadableDeliveryBeforePublication() {
+        val latest = File(folder.root, "cloud/latest.ninho-backup.gz").apply { parentFile!!.mkdirs(); writeText("original damaged copy") }
+        repo().preserveUnreadableRecovery(now)
+        repo().publishRestored(sample, now)
+        assertEquals("original damaged copy", File(folder.root, "daily/unreadable-recovery-$now.ninho-backup.gz").readText())
+        assertEquals(sample, StudyBackupCodec.decode(latest.readBytes()).data)
+    }
+
     @Test fun interruptedPublicationKeepsOldLatestAndRetryPublishesNewArchive() {
         val repo = repo()
         repo.updateIfDue(sample, now, zone)

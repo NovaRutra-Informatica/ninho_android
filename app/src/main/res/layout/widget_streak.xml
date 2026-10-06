@@ -4,7 +4,7 @@
     android:orientation="vertical" android:gravity="center_vertical" android:padding="18dp"
     android:background="@drawable/widget_background">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-        <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/ic_flame"  android:importantForAccessibility="no"/>
+        <ImageView android:id="@+id/widget_flame" android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/ic_flame_inactive" android:importantForAccessibility="no"/>
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:layout_marginStart="8dp" android:text="@string/widget_streak_title"
             android:fontFamily="@font/dm_sans_semibold" android:textSize="13sp" android:textColor="@color/widget_ink" android:maxLines="2"/>

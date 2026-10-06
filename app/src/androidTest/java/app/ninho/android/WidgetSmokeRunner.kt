@@ -14,7 +14,14 @@ import java.io.File
 import java.util.UUID
 
 class WidgetSmokeRunner : Instrumentation() {
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); start() }
+    private var measurePerformance = false
+    private var checkLicenseCrypto = false
+    override fun onCreate(arguments: Bundle?) {
+        super.onCreate(arguments)
+        measurePerformance = arguments?.getString("performance") == "true"
+        checkLicenseCrypto = arguments?.getString("licenseCrypto") == "true"
+        start()
+    }
     override fun onStart() {
         val report = Bundle()
         try {
@@ -45,7 +52,9 @@ class WidgetSmokeRunner : Instrumentation() {
                 }
             }
             val backupChecks = backupSmoke()
-            report.putString("stream", "\nPASS: $checked RemoteViews reais + $backupChecks cenários de backup/AtomicFile em cache isolado por UUID, sem alterar os dados canônicos do usuário.\n")
+            val performance = if (measurePerformance) StudyDevicePerformance(targetContext).run() else ""
+            val licensing = if (checkLicenseCrypto) PlayAcquisitionDeviceTest.run(targetContext) else ""
+            report.putString("stream", "\nPASS: $checked RemoteViews reais + $backupChecks cenários de backup/AtomicFile em cache isolado por UUID, sem alterar os dados canônicos do usuário.\n$performance$licensing")
             report.putInt("viewsPassed", checked)
             report.putInt("backupsPassed", backupChecks)
             finish(Activity.RESULT_OK, report)
@@ -71,6 +80,13 @@ class WidgetSmokeRunner : Instrumentation() {
             source.save(sample); source.refreshBackupFromDisk()
             val latest = File(original.filesDir, "compact-backup/latest.ninho-backup.gz")
             check(StudyBackupCodec.decode(latest.readBytes()).data == sample)
+            val changed = sample.copy(profile = sample.profile.copy(goal = "Alteração sem compactação auxiliar"))
+            source.save(changed)
+            check(source.load(refreshDailyBackup = false) == changed)
+            check(StudyBackupCodec.decode(latest.readBytes()).data == sample)
+            source.refreshBackupFromDisk()
+            check(StudyBackupCodec.decode(latest.readBytes()).data == changed)
+            source.save(sample, immediateBackup = true)
             val fresh = isolated("fresh-install")
             val delivered = File(fresh.filesDir, "compact-backup/latest.ninho-backup.gz")
             delivered.parentFile!!.mkdirs(); latest.copyTo(delivered)
@@ -86,10 +102,29 @@ class WidgetSmokeRunner : Instrumentation() {
             val invalid = isolated("invalid-install")
             val damaged = File(invalid.filesDir, "compact-backup/latest.ninho-backup.gz")
             damaged.parentFile!!.mkdirs(); damaged.writeText("preserve-corrupt-backup")
-            check(StudyStore(invalid).load() == StudyData())
+            check(runCatching { StudyStore(invalid).load() }.exceptionOrNull() is UnreadableStudyBackup)
             check(!File(invalid.filesDir, "study-v1.json").exists())
             check(damaged.readText() == "preserve-corrupt-backup")
-            return 5
+            val invalidStore = StudyStore(invalid)
+            check(runCatching { invalidStore.systemBackupFile() }.isFailure)
+            check(damaged.readText() == "preserve-corrupt-backup")
+            invalidStore.restoreBackup(sample)
+            check(invalidStore.load() == sample)
+            check(File(invalid.noBackupFilesDir, "daily-study-backups").listFiles()!!.any { it.name.startsWith("unreadable-recovery-") && it.readText() == "preserve-corrupt-backup" })
+            check(runCatching { source.systemBackupFile() }.isFailure)
+            val optedIn = sample.copy(settings = sample.settings.copy(androidBackup = true))
+            source.save(optedIn, immediateBackup = true)
+            check(StudyBackupCodec.decode(source.systemBackupFile().readBytes()).data == optedIn)
+            val completed = optedIn.copy(sessions = listOf(StudySession("completion", "backup-test", 60, now, 2, "")))
+            source.save(completed, immediateBackup = true)
+            check(StudyBackupCodec.decode(latest.readBytes()).data == completed)
+            val broken = isolated("failed-restore")
+            val brokenCanonical = File(broken.filesDir, "study-v1.json").apply { writeText("keep-corrupt-canonical") }
+            val brokenStore = StudyStore(broken)
+            check(runCatching { brokenStore.restoreBackup(sample) }.isFailure)
+            check(brokenCanonical.readText() == "keep-corrupt-canonical")
+            check(brokenStore.backupNotice?.contains("restaurado", ignoreCase = true) != true)
+            return 11
         } finally {
             // Instrumentation runs with the target UID. Only this UUID cache tree may be deleted.
             check(root.canonicalPath.startsWith(targetContext.cacheDir.canonicalPath + File.separator))

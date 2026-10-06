@@ -27,6 +27,7 @@ Thumbs.db
 secrets.properties
 keystore.properties
 signing.properties
+play-licensing.properties
 *.jks
 *.keystore
 *.p12

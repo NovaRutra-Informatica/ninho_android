@@ -21,14 +21,16 @@ object LocalAnalytics {
         val block = minOf(profile.sessionMinutes, profile.dailyMinutes).coerceIn(1, 240)
         val cards = mutableListOf<LocalInsight>()
         val historical = data.copy(sessions = data.sessions.filter { it.at <= now }, attempts = data.attempts.filter { it.at <= now })
-        val suggested = StudyCoach.suggestions(historical, now)
-        val due = suggested.filter { it.due <= now && (historical.sessions.any { s -> s.subjectId == it.subject.id } || historical.attempts.any { a -> a.subjectId == it.subject.id }) }
+        val index = StudyIndex.build(historical)
+        val suggested = StudyCoach.suggestions(historical, now, index)
+        val due = suggested.filter { it.due <= now && (it.subject.id in index.sessionsBySubject || it.subject.id in index.attemptsBySubject) }
         if (due.isNotEmpty()) {
             val first = due.first()
             cards += LocalInsight("review", "Uma lembrança para hoje", "${first.subject.name}: ${first.reason}", "${due.size} matéria(s) com revisão sugerida pelos seus registros.", "Abrir revisões", "reviews", first.subject.id)
         }
+        val recentAttempts = attempts.groupBy { it.subjectId }
         val difficulties = data.subjects.mapNotNull { subject ->
-            val records = attempts.filter { it.subjectId == subject.id }
+            val records = recentAttempts[subject.id].orEmpty()
             val score = smoothedAccuracy(records.count { it.correct }, records.size)
             if (records.size >= 5 && score < .7) Triple(subject, records, score) else null
         }.sortedBy { it.third }
@@ -45,7 +47,7 @@ object LocalAnalytics {
             val start = common.key * 3
             cards += LocalInsight("schedule", "Um horário que já aparece na sua rotina", "Você iniciou ${common.value.size} de ${starts.size} sessões entre ${start}h e ${start + 3}h, em pelo menos três dias. Se ainda couber na sua rotina, reserve um bloco nesse período.", "Padrão observado nos últimos 90 dias. Frequência não significa maior produtividade.", "Preparar meu foco", "focus")
         }
-        val unseen = data.subjects.firstOrNull { s -> historical.sessions.none { it.subjectId == s.id } }
+        val unseen = data.subjects.firstOrNull { it.id !in index.sessionsBySubject }
         if (unseen != null && cards.size < 4) cards += LocalInsight("first", "Conheça ${unseen.name}", "Ainda não há sessão registrada para esta matéria. Comece com até $block minutos e anote o que conseguiu explicar com suas palavras.", "Ausência de registro não significa ausência de estudo.", "Começar um bloco", "focus", unseen.id)
         val recentUsage = UsageLedger.prune(data.usage, now, zone)
         val pauses = recentUsage.sumOf { it.timerPauses }

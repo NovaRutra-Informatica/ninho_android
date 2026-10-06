@@ -1,9 +1,31 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.security.KeyFactory
+import java.security.interfaces.RSAPublicKey
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
+import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val playLicenseProperties = Properties().apply {
+    val config = rootProject.file("play-licensing.properties")
+    if (config.isFile) config.inputStream().use(::load)
+}
+val playLicensePublicKey = playLicenseProperties.getProperty("play.license.publicKey", "").filterNot(Char::isWhitespace)
+val encodedPlayLicenseKey = playLicensePublicKey.takeIf { it.matches(Regex("[A-Za-z0-9+/=]*")) }.orEmpty()
+val validateReleaseAcquisition = tasks.register("validateReleaseAcquisition") {
+    doLast {
+        check(playLicensePublicKey.isNotEmpty()) {
+            "Ninho release bloqueado: configure play.license.publicKey em play-licensing.properties com a chave PUBLICA de licenciamento do app PAGO na Play Console. Debug continua disponível."
+        }
+        val key = runCatching { KeyFactory.getInstance("RSA").generatePublic(X509EncodedKeySpec(Base64.getDecoder().decode(playLicensePublicKey))) as RSAPublicKey }.getOrNull()
+        check(key != null && key.modulus.bitLength() >= 2048) { "Chave PUBLICA Google Play inválida: use RSA X.509 Base64, 2048 bits ou superior. Não use chave privada, chave de upload ou certificado de assinatura." }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(validateReleaseAcquisition) }
 
 android {
     namespace = "app.ninho.android"
@@ -17,6 +39,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "app.ninho.android.WidgetSmokeRunner"
+        buildConfigField("String", "PLAY_LICENSE_PUBLIC_KEY", "\"$encodedPlayLicenseKey\"")
     }
 
     compileOptions {
@@ -26,6 +49,8 @@ android {
 
     buildFeatures {
         compose = true
+        aidl = true
+        buildConfig = true
     }
 
     buildTypes {

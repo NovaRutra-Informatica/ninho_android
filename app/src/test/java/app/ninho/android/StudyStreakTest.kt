@@ -11,6 +11,13 @@ class StudyStreakTest {
     private fun time(value: String) = Instant.parse(value).toEpochMilli()
     private fun session(value: String, seconds: Long = 1200) = StudySession(subjectId = "s", seconds = seconds, at = time(value), rating = 2, note = "")
 
+    @Test fun noActivityShowsZeroAndNeverLightsTheFlame() {
+        val summary = StudyStreak.summary(StudyData(), now, zone)
+        assertEquals(0, summary.days)
+        assertFalse(summary.studiedToday)
+        assertTrue(summary.recentDays.none { it })
+    }
+
     @Test fun currentDayExtendsConsecutiveDaysAndCountsDuplicatesOnce() {
         val data = StudyData(sessions = listOf(session("2026-09-21T20:00:00Z"), session("2026-09-22T20:00:00Z"), session("2026-09-23T12:00:00Z"), session("2026-09-23T14:00:00Z")))
         assertEquals(3, StudyStreak.summary(data, now, zone).days)

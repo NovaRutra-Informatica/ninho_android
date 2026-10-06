@@ -108,6 +108,13 @@ class DailyStudyBackups(private val archiveDirectory: File, private val latestFi
         rotate("before-restore-", 3)
     }
 
+    fun preserveUnreadableRecovery(now: Long) {
+        if (latestFile.isFile) {
+            require(latestFile.length() <= StudyBackupCodec.MAX_COMPRESSED)
+            atomicWrite(File(archiveDirectory, "unreadable-recovery-$now.${StudyBackupCodec.EXTENSION}"), latestFile.inputStream().use { StudyBackupCodec.readBounded(it) })
+        }
+    }
+
     fun restoreIfEmpty(canonicalExists: Boolean): RestorableStudyBackup? {
         if (canonicalExists) return null
         val candidates = listOf(latestFile) + archiveDirectory.listFiles().orEmpty()
@@ -119,6 +126,7 @@ class DailyStudyBackups(private val archiveDirectory: File, private val latestFi
                 if (copy.capturedAt > (newest?.capturedAt ?: 0L)) newest = copy
             } catch (_: Exception) { /* Preserve damaged copies and try older valid history. */ }
         }
+        if (newest == null && candidates.any { it.exists() }) throw UnreadableStudyBackup()
         return newest
     }
 
@@ -144,3 +152,5 @@ class DailyStudyBackups(private val archiveDirectory: File, private val latestFi
         } finally { temporary.delete() }
     }
 }
+
+class UnreadableStudyBackup : java.io.IOException("Há uma cópia anterior que não pôde ser validada. Ela foi preservada; nenhum perfil vazio será criado por cima dela.")

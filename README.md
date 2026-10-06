@@ -2,6 +2,26 @@
 
 Aplicativo nativo em Kotlin e Jetpack Compose, com estudos e acompanhamento inteiramente offline. A interface mantém a coruja original do Ninho, tons de verde, cartões suaves, navegação animada e temas claro/escuro do sistema.
 
+## Compra única pela Google Play
+
+A versão de produção está preparada para **app pago no download**, sem assinatura, código digitado ou produto comprado dentro do app. Na primeira abertura, a tela do Ninho confirma a aquisição pela Google Play; isso exige conexão na loja. Depois de uma resposta assinada válida, a autorização fica vinculada à instalação e o estudo funciona **offline sem prazo de expiração**. Não há consulta periódica ou bloqueio por tempo. Reinstalação, limpeza de dados, troca de aparelho ou perda da chave local exigem nova confirmação; restaurar estudos não restaura licença.
+
+A integração usa o protocolo oficial Google Play Licensing, valida assinatura RSA, nonce, pacote, versão e horário da resposta. A prova fica cifrada com AES-GCM e chave não exportável do Android Keystore em `noBackupFilesDir`, fora de backups de estudo, Auto Backup e transferência de aparelho. Alterar um booleano ou copiar o arquivo para outra instalação não libera o app. Não há segredo comercial embutido. Uma alteração maliciosa no próprio APK ainda pode contornar controles locais, e reembolsos/revogações não são detectados enquanto a instalação permanece offline. [Protocolo e política de licenciamento](https://developer.android.com/google/play/licensing/overview).
+
+Antes de uma consulta explícita, uma marca atômica suspende a prova anterior. Negativa, resposta inválida ou falha ao excluir a prova não podem ressuscitar essa licença após reiniciar. Falha transitória de rede só recupera uma prova anterior já validada e após confirmar a gravação; falha nessa recuperação mantém o acesso bloqueado até nova confirmação. Isso não adiciona verificações periódicas ao uso offline.
+
+**Antes de publicar:** configure o app como pago e confirme o histórico de `app.ninho.android` na Play Console. O Google não permite tornar pago um app que já foi oferecido gratuitamente com o mesmo pacote; nesse caso é necessário decidir uma nova identidade e migração. Nenhum pacote ou cadastro foi alterado automaticamente. [Regra oficial de preços](https://support.google.com/googleplay/android-developer/answer/6334373?hl=en).
+
+Para configurar o build de produção, copie `play-licensing.properties.example` para `play-licensing.properties` e preencha `play.license.publicKey` com a **chave pública de licenciamento deste app** na Play Console (RSA X.509 em Base64). Essa não é a chave de assinatura/upload. O arquivo local é ignorado pelo Git; a chave privada de licenciamento continua com o Google. O release falha claramente se essa configuração estiver ausente ou inválida. O debug usa implementação de desenvolvimento separada na compilação, sem exigir compra; **não distribua debug como produto comercial**. Não existe chave de teste, variável de ambiente ou opção de liberação no release.
+
+```powershell
+.\gradlew.bat :app:validateReleaseAcquisition :app:bundleRelease :app:lintRelease --console=plain
+```
+
+O projeto não contém credenciais de assinatura comercial. Configure **Play App Signing** e assine o AAB com sua chave de upload pelo fluxo seguro do Android Studio/CI. O bundle local sem assinatura comercial não está pronto para enviar à loja. Valide a compra em faixa fechada/aberta publicada com contas de teste; draft e instalação local não comprovam a integração de compra. Nenhum app foi publicado, precificado ou comprado nesta alteração. [Preparação oficial](https://developer.android.com/google/play/licensing/setting-up).
+
+Arquitetura, limites, configuração e evidências estão em [DevDocs/PLAY-LICENSING.md](DevDocs/PLAY-LICENSING.md). **Play Integrity não foi simulado offline**: requer um backend seguro. A proteção automática da Play é uma alternativa gerida pela loja e pode exigir reconexão periódica; não foi ativada e precisa de nova avaliação se o requisito offline mudar. [Play Integrity](https://developer.android.com/google/play/integrity/setup), [proteção automática](https://support.google.com/googleplay/android-developer/answer/10183279?hl=en).
+
 ## O que está implementado
 
 - Hoje com tempo estudado, sessões recentes e cartões proativos da assistente. O cabeçalho mostra apenas o foguinho e o número da sequência ao lado de Perfil: toque para abrir o calendário mensal dos dias estudados. Navegação inferior: Hoje, Estudos, Foco, Revisões e Assistente; foguinho, Perfil e Ajuda têm rótulos de acessibilidade e alvos de pelo menos 48 dp.
@@ -23,9 +43,9 @@ Na primeira abertura, o Ninho apresenta **dez telas de perguntas**, sem barra de
 
 Ao criar o perfil, o motor incluído prepara um ponto de partida usando as respostas, sem download ou importação. A tela informa que é uma análise estatística local, não um modelo de linguagem. Conforme o usuário registra sessões e questões, novos cartões explicam o que mudou. Perfil e eventual texto gerado pelo modelo opcional são armazenados separadamente: editar objetivos marca esse texto como desatualizado; uma resposta iniciada com outro perfil não sobrescreve o plano novo.
 
-Cada primeira visita a Hoje, Estudos, Foco, Revisões, Meu perfil e Minha assistente mostra uma explicação dos componentes. **Ajuda** repete o tutorial atual; Meu perfil permite reiniciar todos. As conclusões ficam no armazenamento local. Esta versão Android ainda não possui telas próprias de Agenda, Materiais e Progresso; não são apresentados tutoriais de funções inexistentes.
+Cada primeira visita a Hoje, Estudos, Foco, Revisões, Meu perfil e Minha assistente mostra uma explicação centralizada que bloqueia a tela ao fundo. **Ajuda** repete o mesmo tutorial; Meu perfil permite reiniciar todos. **Ver depois** e **Entendi** fecham somente após salvar a conclusão; falhas mantêm a explicação aberta para tentar novamente. Voltar do Android e tocar fora não encerram o tutorial. Esta versão Android ainda não possui telas próprias de Agenda, Materiais e Progresso; não são apresentados tutoriais de funções inexistentes.
 
-Em Meu perfil, o tema (sistema/claro/escuro) e a opção de reduzir movimento também são salvos automaticamente. O tema escuro usa superfícies neutras, mantendo o verde como cor de destaque. Não há botão Salvar para preferências.
+Em Meu perfil, tema, redução de movimento e sons suaves são salvos automaticamente. Os sons começam desligados; navegar usa um toque discreto de 70 ms, limitado a uma vez a cada 140 ms, sem interromper outra confirmação. Salvar preferências é silencioso. Música/vídeo em reprodução e o modo silencioso do Android impedem os toques; o app não solicita audio focus. A coruja faz uma breve animação ao aparecer, e páginas, etapas e calendário mudam suavemente, respeitando a redução de movimento do app e do sistema. O tema escuro usa superfícies neutras, mantendo o verde como destaque.
 
 ## Backup leve diário e recuperação
 
@@ -33,13 +53,13 @@ Em **Perfil → Seu caminho está guardado**, o Ninho mostra a última cópia e 
 
 A cópia inclui tudo que a versão Android persiste atualmente: perfil e objetivos, matérias, sessões e notas, questões/gabaritos/respostas, configurações, tutoriais, uso agregado e o plano salvo da assistente. Progresso e sequência são reconstruídos dos registros. Esta versão ainda não armazena cursos, aulas ou materiais como entidades próprias; não promete incluí-los. O backup não percorre diretórios de anexos, modelos, caches ou widgets e não carrega IA.
 
-O arquivo `.ninho-backup.gz` usa gzip, versão e checksum SHA-256. Limites: **2 MiB compactados / 8 MiB expandidos**. Há uma cópia por data local, atualizada após alterações com debounce de 2 s, até **7 dias** guardados internamente e até **3 cópias de segurança anteriores a restaurações manuais**. A gravação é atômica e só ocorre depois que o estado canônico foi salvo; falhar o backup não desfaz nem bloqueia os estudos. Dados idênticos não geram nova compactação. O snapshot do temporizador fica pausado, sem registrar estudo automaticamente.
+O arquivo `.ninho-backup.gz` usa gzip, versão e checksum SHA-256. Limites: **2 MiB compactados / 8 MiB expandidos**. Há uma cópia por data local, atualizada imediatamente após registrar sessão ou resposta e, nas demais alterações, com debounce de 2 s. Até **7 dias** ficam guardados internamente, além de até **3 cópias anteriores a restaurações manuais**. A gravação é atômica e só ocorre depois que o estado canônico foi salvo; falhar o backup não desfaz nem bloqueia os estudos. Dados idênticos não geram nova compactação. O snapshot do temporizador fica pausado, sem registrar estudo automaticamente.
 
 Um `JobScheduler` persistente solicita execução diária com janela flexível de 6 horas, bateria e armazenamento disponíveis, sem serviço contínuo, rede própria ou IA. O Android pode adiar ou impedir a tarefa. Abrir o aplicativo e salvar estudos também atualiza a cópia; não há promessa de execução em um horário exato ou enquanto o app estiver encerrado à força.
 
-O **Auto Backup/transferência de aparelho do Android** recebe exclusivamente `files/compact-backup/latest.ninho-backup.gz`, até 2 MiB. O banco canônico, rotação interna, preferências do runtime e pesos permanecem fora. O backup na nuvem exige recursos de criptografia do sistema; o envio depende do backup habilitado pelo usuário, da conta e das condições do Android. O Ninho continua sem permissão `INTERNET`. Não ativamos conta/backup na máquina de teste e não afirmamos que o Google recebeu uma cópia.
+O **Auto Backup/transferência de aparelho do Android** recebe exclusivamente `files/compact-backup/latest.ninho-backup.gz`, até 2 MiB, depois de ativar **Permitir backup do Android** no Perfil. Essa opção começa desligada, inclusive para dados antigos sem preferência. O banco canônico, rotação interna, preferências do runtime e pesos permanecem fora. O agente recusa o envio quando desligado, sem estado válido ou sem criptografia/transferência local, evitando publicar uma cópia vazia no lugar da anterior. A restauração entregue pelo sistema funciona independentemente dessa opção. O Ninho não solicita a exclusão das cópias remotas ao desativar. A disponibilidade da conta e o recebimento na nuvem não podem ser confirmados pelo app: o usuário também precisa habilitar o backup do sistema. Em aparelhos sem suporte a backup, a opção fica desabilitada. O Ninho continua sem permissão `INTERNET`; não ativamos conta/backup na máquina de teste nem afirmamos que o Google recebeu uma cópia.
 
-Ao reinstalar, se o Android entregar um snapshot válido e ainda não houver arquivo canônico, o Ninho valida e recupera os dados **antes do onboarding**. Estado atual existente, mesmo corrompido, nunca é substituído automaticamente. Um snapshot inválido é preservado e cópias internas válidas mais recentes podem ser usadas. Modelos precisam ser importados novamente. Desinstalar apaga também a rotação interna; somente uma cópia exportada para fora do app ou efetivamente guardada pelo sistema permite recuperação depois.
+Ao reinstalar, se o Android entregar um snapshot válido e ainda não houver arquivo canônico, o Ninho valida e recupera os dados **antes do onboarding**. Estado atual existente, mesmo corrompido, nunca é substituído automaticamente. Um snapshot inválido é preservado e outras cópias internas válidas podem ser usadas. Se todas as cópias forem inválidas, a abertura fica na recuperação, sem criar perfil vazio nem enviar dados: é possível tentar novamente ou importar uma cópia válida. Antes dessa importação, a entrega danificada é preservada separadamente. O Android controla a entrega antes de abrir o aplicativo; o Ninho não simula uma busca direta em nuvem. Modelos precisam ser importados novamente. Desinstalar apaga também a rotação interna; somente uma cópia exportada para fora do app ou efetivamente guardada pelo sistema permite recuperação depois.
 
 A exportação abre o seletor nativo **Arquivos**: escolha uma pasta sua ou um provedor como Drive, se disponível. O Ninho não faz login nem upload por conta própria. O arquivo é compacto, mas contém os dados pessoais em texto comprimido; guarde-o em um local privado. A importação aceita apenas o formato do Ninho Android, verifica tamanho/versão/checksum/registros e mostra uma confirmação antes de substituir os estudos atuais. Uma cópia local anterior é obrigatória antes dessa substituição. Exportações para outros sistemas não são anunciadas como interoperáveis.
 
@@ -94,7 +114,7 @@ O modelo deve ser obtido separadamente, respeitando sua licença. Pesos não for
 
 ## Limites atuais
 
-Não há importação de banco de questões em lote, leitura de PDFs, exportação/restauração de backup, edição/exclusão de matérias ou sons ambiente. A prática de questões utiliza autoavaliação com gabarito; não promete correção automática. Desinstalar o app remove seus dados e o modelo importado. Esses recursos não são simulados na interface.
+Não há importação de banco de questões em lote, leitura de PDFs, edição/exclusão de matérias ou sons ambiente. A prática de questões utiliza autoavaliação com gabarito; não promete correção automática. Desinstalar o app remove seus dados e o modelo importado. Esses recursos não são simulados na interface.
 
 Nenhum commit ou staging foi feito durante a preparação. Branches, remotos e publicação ficam sob seu controle; os fontes podem ser adicionados posteriormente com `git add .`.
 
@@ -134,7 +154,7 @@ O emulador serve para conferir a interface e os fluxos. Desempenho da IA, consum
 
 ### Se o Android Studio mostrar “Dependency verification failed” ao baixar fontes
 
-O erro observado em `:app:detachedConfiguration2` era a ausência de checksums de 106 arquivos de fontes usados pela IDE, incluindo o ZIP de fontes do Gradle. Os artefatos foram conferidos nos repositórios oficiais e seus SHA-256 foram fixados individualmente em `gradle/verification-metadata.xml`. Não foi desativada a verificação.
+O erro observado em `:app:detachedConfiguration2` era a ausência de checksums de arquivos de fontes usados pela IDE. A lista validada contém **111 artefatos**, incluindo o ZIP de fontes do Gradle e os cinco JARs de fontes padrão do Kotlin 2.4.20/Guava 33.4.0-jre pedidos pela IDE. Estes últimos são distintos das variantes `gradle96-sources` já cadastradas. Os artefatos foram conferidos nos repositórios oficiais e seus SHA-256 foram fixados individualmente em `gradle/verification-metadata.xml`. Não foi desativada a verificação.
 
 Depois de atualizar os arquivos do projeto, use **Sync Project with Gradle Files**. A resolução das mesmas fontes pode ser conferida pelo terminal:
 
@@ -144,6 +164,29 @@ Depois de atualizar os arquivos do projeto, use **Sync Project with Gradle Files
 
 A lista exata, com URLs oficiais e hashes, está em `security/ide-source-artifacts.json`. O comando mantém a política estrita; não limpa dados nem instala o app.
 
+## Testes de desempenho
+
+Revisões, matérias e recomendações usam um índice compartilhado, reconstruído fora da thread da interface quando os registros mudam. Salvar tema, perfil ou navegação reutiliza o índice. Questões e seletores de matérias criam apenas os itens visíveis; widgets e lembretes não descompactam novamente o backup a cada leitura auxiliar.
+
+O ensaio sintético inclui **71, 1.000 e 5.000 questões**, com quatro sessões e quatro tentativas por questão. Ele registra mediana, p95 e alocações no computador, sem impor limites de tempo dependentes da máquina:
+
+```powershell
+$env:NINHO_PERFORMANCE = '1'
+try {
+    .\gradlew.bat :app:testDebugUnitTest --tests app.ninho.android.StudyPerformanceTest --rerun-tasks --console=plain
+} finally {
+    Remove-Item Env:NINHO_PERFORMANCE -ErrorAction SilentlyContinue
+}
+```
+
+O resultado fica em `app/build/test-results/testDebugUnitTest/TEST-app.ninho.android.StudyPerformanceTest.xml`. O ensaio instrumental adicional usa ART e arquivos atômicos reais em uma pasta temporária UUID; não substitui os estudos do usuário. Após instalar os APKs debug/de teste **num emulador de teste**, use o identificador retornado por `adb devices -l`:
+
+```powershell
+& $ninhoAdb -s emulator-5580 shell am instrument -w -e performance true 'app.ninho.android.test/app.ninho.android.WidgetSmokeRunner'
+```
+
+As medições de 23/09/2026 usaram um emulador API 36.1 x86_64, aberto sem janela e sem gravar alterações no AVD. Medem cálculo e armazenamento; não equivalem a FPS, consumo térmico ou desempenho de IA num telefone físico. Métodos, resultados e limitações estão em [DevDocs/PERFORMANCE-2026-09-23.md](DevDocs/PERFORMANCE-2026-09-23.md).
+
 ## Abrir e compilar no Windows
 
 Abra esta pasta no Android Studio. O SDK já foi configurado neste computador pelo arquivo local `local.properties`, que é ignorado pelo Git.
@@ -152,10 +195,18 @@ No PowerShell, dentro desta pasta:
 
 ```powershell
 .\gradlew.bat --version
-.\gradlew.bat :app:assembleDebug :app:assembleRelease :app:testDebugUnitTest :app:lintDebug :app:lintRelease
+.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```
 
 O APK de desenvolvimento será gerado em `app\build\outputs\apk\debug\app-debug.apk`. Os relatórios de lint ficam em `app\build\reports\`. Esses arquivos são locais e ignorados pelo Git. O APK usa a chave padrão de depuração do SDK; não é um pacote de produção assinado para publicação.
+
+O release exige a configuração de compra descrita acima. Para ensaiar compilação/R8/lint e as 32 verificações de segurança sem uma conta Play configurada, o comando abaixo gera somente uma chave pública sintética temporária, descarta a privada, compila em `build/play-acquisition-release-fixture` e remove a configuração ao terminar. Ele recusa substituir uma configuração existente. O artefato resultante **não confirma compras reais e não deve ser distribuído**; o gate permanece ativo.
+
+```powershell
+.\scripts\test-play-acquisition-release.ps1 -SdkPath $env:ANDROID_HOME -JavaHome $env:JAVA_HOME
+```
+
+O script exige PowerShell 7/.NET moderno. Informe os caminhos locais explicitamente se as variáveis estiverem vazias. A validação de assinaturas e de cache está em `PlayLicenseProofTest`; suspensão persistente, falhas de exclusão/rollback e reinício estão em `PlayAcquisitionStateTest`. Os cenários reais de Android Keystore/AtomicFile podem ser executados no emulador de teste com `adb shell am instrument -w -e licenseCrypto true app.ninho.android.test/app.ninho.android.WidgetSmokeRunner`, após instalar os APKs debug e androidTest. Esse ensaio não simula uma compra Google.
 
 Em outro computador, instale o Android SDK com plataforma Android 36 e Build Tools 36.0.0. Copie `local.properties.example` para `local.properties` e ajuste `sdk.dir`. Use um JDK compatível com o Gradle; a preparação deste computador utiliza o Java 25 já instalado. O wrapper baixa e valida a distribuição do Gradle automaticamente na primeira execução. Não é necessário instalar o Gradle globalmente.
 

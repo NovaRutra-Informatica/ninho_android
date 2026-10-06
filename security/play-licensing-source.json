@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/google/play-licensing",
+  "commit": "ac02e222a7c2842158103484fbd7fd2a440c364e",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "upstream": "lvl_library/src/main/aidl/com/android/vending/licensing/ILicenseResultListener.aidl",
+      "local": "app/src/main/aidl/com/android/vending/licensing/ILicenseResultListener.aidl",
+      "sha256": "36e832d0cafac542648e9a077f1723672c6de9484846c41b93354096a663de12"
+    },
+    {
+      "upstream": "lvl_library/src/main/aidl/com/android/vending/licensing/ILicensingService.aidl",
+      "local": "app/src/main/aidl/com/android/vending/licensing/ILicensingService.aidl",
+      "sha256": "bbc43b4fcd7cdfcd897cd87111927f5215e2eedec0d6b2373c44ae7f14f65a1f"
+    },
+    {
+      "upstream": "LICENSE.txt",
+      "local": "app/src/main/assets/licenses/Google-Play-Licensing-Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    }
+  ]
+}

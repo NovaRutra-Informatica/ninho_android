@@ -43,9 +43,9 @@ data class StudySuggestion(val subject: Subject, val reason: String, val due: Lo
 
 object StudyCoach {
     private const val DAY = 86_400_000L
-    fun suggestions(data: StudyData, now: Long): List<StudySuggestion> = data.subjects.map { subject ->
-        val last = data.sessions.filter { it.subjectId == subject.id }.maxByOrNull { it.at }
-        val attempt = data.attempts.filter { it.subjectId == subject.id }.maxByOrNull { it.at }
+    fun suggestions(data: StudyData, now: Long, index: StudyIndex = StudyIndex.build(data)): List<StudySuggestion> = data.subjects.map { subject ->
+        val last = index.latestSession[subject.id]
+        val attempt = index.latestAttempt[subject.id]
         when {
             attempt != null && !attempt.correct && attempt.at >= (last?.at ?: 0) ->
                 StudySuggestion(subject, "Sua última questão precisa de revisão. Retome a explicação e tente novamente.", attempt.at)
@@ -62,6 +62,7 @@ object StudyCoach {
 
     fun secondsToday(data: StudyData, now: Long, zone: ZoneId = ZoneId.systemDefault()): Long {
         val date = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
-        return data.sessions.filter { it.seconds > 0 && it.at in 1..now && Instant.ofEpochMilli(it.at).atZone(zone).toLocalDate() == date }.sumOf { it.seconds }
+        val start = date.atStartOfDay(zone).toInstant().toEpochMilli()
+        return data.sessions.sumOf { if (it.seconds > 0 && it.at in maxOf(1, start)..now) it.seconds else 0 }
     }
 }

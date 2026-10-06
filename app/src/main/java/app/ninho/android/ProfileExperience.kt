@@ -17,16 +17,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,13 +31,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @Composable internal fun Welcome(model: NinhoModel) {
     val step = model.welcomeStep
@@ -100,7 +95,7 @@ import androidx.compose.ui.unit.sp
                     }
                 }
                 Box(Modifier.weight(1f)) {
-                    if (model.data.settings.reducedMotion) body(step)
+                    if (reducedMotion(model.data.settings.reducedMotion)) body(step)
                     else AnimatedContent(step, transitionSpec = {
                         val direction = if (targetState > initialState) 1 else -1
                         (slideInHorizontally(tween(250)) { direction * it / 8 } + fadeIn(tween(230)))
@@ -129,12 +124,7 @@ import androidx.compose.ui.unit.sp
 }
 
 @Composable private fun WelcomeOwl(reducedMotion: Boolean) {
-    val scale = if (reducedMotion) 1f else {
-        val transition = rememberInfiniteTransition(label = "Coruja de boas-vindas")
-        val value by transition.animateFloat(1f, 1.06f, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = "Respiração")
-        value
-    }
-    Image(painterResource(R.drawable.owl), "Coruja Ninho", Modifier.size(104.dp).graphicsLayer { scaleX = scale; scaleY = scale; translationY = -(scale - 1f) * 90; rotationZ = (scale - 1f) * 24 })
+    NinhoMascot(104.dp, reducedMotion)
 }
 
 @Composable internal fun ProfilePage(model: NinhoModel, onAssistant: () -> Unit, onTutorial: () -> Unit) {
@@ -171,6 +161,8 @@ import androidx.compose.ui.unit.sp
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduzir movimento", Modifier.weight(1f)); Switch(checked = model.data.settings.reducedMotion, onCheckedChange = model::updateReducedMotion) }
+            Row(verticalAlignment = Alignment.CenterVertically) { Text("Sons suaves", Modifier.weight(1f)); Switch(checked = model.data.settings.sound, onCheckedChange = model::updateSound) }
+            Text("Toques discretos ao navegar e registrar estudos. A preferência é salva sem som; o Ninho respeita o modo silencioso e não interrompe música ou vídeo.", fontSize = 12.sp, lineHeight = 20.sp)
             Row(verticalAlignment = Alignment.CenterVertically) { Text("Aviso silencioso do temporizador", Modifier.weight(1f)); Switch(checked = model.data.settings.timerReminder, onCheckedChange = ::enableReminder) }
             Text("O Android avisa ao terminar, sem som, vibração ou interrupção de música e vídeo. Em repouso ou economia de energia, o sistema pode atrasar o aviso; o relógio salvo permanece correto.", fontSize = 12.sp, lineHeight = 20.sp)
             if (notificationDenied || model.data.settings.timerReminder && !model.canNotify()) {
@@ -263,16 +255,49 @@ import androidx.compose.ui.unit.sp
     }
 }
 
-@Composable internal fun TutorialDialog(route: String, onDone: () -> Unit) {
+@Composable internal fun TutorialDialog(route: String, model: NinhoModel, onDone: () -> Unit) {
     val steps = ScreenTutorials.steps(route)
     var index by rememberSaveable(route) { mutableIntStateOf(0) }
-    AlertDialog(onDismissRequest = onDone, icon = { Image(painterResource(R.drawable.owl), null, Modifier.size(64.dp)) },
-        title = { Text(steps[index].title, fontFamily = NinhoDisplayFont) },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            LinearProgressIndicator(progress = { (index + 1) / steps.size.toFloat() }, modifier = Modifier.fillMaxWidth())
-            Text(steps[index].description, lineHeight = 23.sp)
-            Text("${index + 1} de ${steps.size} • Você pode rever pelo botão Ajuda.", fontSize = 12.sp)
-        } },
-        confirmButton = { TextButton(onClick = { if (index < steps.lastIndex) index++ else onDone() }) { Text(if (index < steps.lastIndex) "Próximo" else "Vamos lá") } },
-        dismissButton = { TextButton(onClick = { if (index > 0) index-- else onDone() }) { Text(if (index > 0) "Voltar" else "Ver depois") } })
+    var saving by remember { mutableStateOf(false) }
+    var failure by remember { mutableStateOf<String?>(null) }
+    val completion = remember(route) { TutorialCompletion() }
+    fun complete() {
+        completion.submit(persist = { saved, failed -> model.tutorialSeen(route, saved, failed) },
+            onPending = { saving = it }, onComplete = onDone, onFailure = {
+            saving = false
+            failure = model.error ?: "Não foi possível salvar agora. Tente novamente."
+            model.dismissError()
+        })
+    }
+    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false)) {
+        Surface(Modifier.padding(horizontal = 20.dp, vertical = 24.dp).widthIn(max = 440.dp).fillMaxWidth().heightIn(max = 620.dp),
+            shape = RoundedCornerShape(30.dp), color = MaterialTheme.colorScheme.surface) {
+            Column {
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        NinhoMascot(72.dp, model.data.settings.reducedMotion, trigger = index)
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("NO SEU RITMO", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                            Text("${index + 1} de ${steps.size}", fontSize = 12.sp)
+                            LinearProgressIndicator(progress = { (index + 1) / steps.size.toFloat() }, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                    val tip: @Composable (Int) -> Unit = { step -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(steps[step].title, fontFamily = NinhoDisplayFont, fontSize = 26.sp, lineHeight = 32.sp)
+                        Text(steps[step].description, lineHeight = 25.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } }
+                    if (reducedMotion(model.data.settings.reducedMotion)) tip(index)
+                    else AnimatedContent(index, transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(160)) }, label = "Etapa do tutorial") { tip(it) }
+                    Text("Você pode rever pelo botão Ajuda.", fontSize = 12.sp)
+                    failure?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, lineHeight = 20.sp) }
+                }
+                Row(Modifier.padding(20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(onClick = { model.playNavigationSound(); complete() }, enabled = !saving,
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Ver depois") }
+                    Button(onClick = { model.playNavigationSound(); if (index < steps.lastIndex) index++ else complete() }, enabled = !saving,
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(if (index < steps.lastIndex) "Próximo" else "Entendi") }
+                }
+            }
+        }
+    }
 }

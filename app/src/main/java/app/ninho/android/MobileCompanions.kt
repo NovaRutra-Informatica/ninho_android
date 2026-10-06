@@ -1,6 +1,11 @@
 package app.ninho.android
 
 import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -57,16 +62,16 @@ import java.util.Locale
     val now = rememberStudyClock()
     val zone = ZoneId.systemDefault()
     val streak = remember(data.sessions, data.attempts, now, zone) { StudyStreak.summary(data, now, zone) }
-    val description = "Sequência de ${streak.days} ${if (streak.days == 1) "dia" else "dias"}. Abrir calendário de estudos"
+    val description = "Sequência de ${streak.days} ${if (streak.days == 1) "dia" else "dias"}. ${if (streak.studiedToday) "Estudo registrado hoje." else "Sem estudo registrado hoje."} Abrir calendário de estudos"
     TextButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp)
         .semantics { contentDescription = description }, contentPadding = PaddingValues(horizontal = 4.dp)) {
-        Image(painterResource(R.drawable.ic_flame), null, Modifier.size(25.dp))
+        Image(painterResource(if (streak.studiedToday) R.drawable.ic_flame else R.drawable.ic_flame_inactive), null, Modifier.size(25.dp))
         Text("${streak.days}", Modifier.padding(start = 3.dp).clearAndSetSemantics {}, fontSize = 17.sp,
             fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
     }
 }
 
-@Composable internal fun StudyCalendarDialog(data: StudyData, onDismiss: () -> Unit) {
+@Composable internal fun StudyCalendarDialog(data: StudyData, onNavigate: () -> Unit = {}, onDismiss: () -> Unit) {
     val now = rememberStudyClock()
     val zone = ZoneId.systemDefault()
     val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
@@ -84,7 +89,7 @@ import java.util.Locale
             shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Image(painterResource(R.drawable.ic_flame), null, Modifier.size(36.dp))
+                    Image(painterResource(if (streak.studiedToday) R.drawable.ic_flame else R.drawable.ic_flame_inactive), null, Modifier.size(36.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text("Seus dias de estudo", fontFamily = NinhoDisplayFont, fontSize = 26.sp, lineHeight = 31.sp)
                         Text("${streak.days} ${if (streak.days == 1) "dia" else "dias"} de sequência", fontSize = 14.sp,
@@ -92,23 +97,26 @@ import java.util.Locale
                     }
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    CalendarMonthButton(previous = true, onClick = { monthValue = month.minusMonths(1).toString() })
+                    CalendarMonthButton(previous = true, onClick = { onNavigate(); monthValue = month.minusMonths(1).toString() })
                     Text(monthLabel, Modifier.weight(1f), textAlign = TextAlign.Center, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
-                    CalendarMonthButton(previous = false, onClick = { monthValue = month.plusMonths(1).toString() })
+                    CalendarMonthButton(previous = false, onClick = { onNavigate(); monthValue = month.plusMonths(1).toString() })
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                AnimatedContent(calendar, transitionSpec = {
+                    val duration = if (reducedMotion(data.settings.reducedMotion)) 0 else 180
+                    fadeIn(tween(duration)) togetherWith fadeOut(tween(duration))
+                }, label = "Mês de estudo") { displayedCalendar -> Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(Modifier.fillMaxWidth()) {
                         listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom").forEach { day ->
                             Text(day, Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    calendar.cells.chunked(7).forEach { week ->
+                    displayedCalendar.cells.chunked(7).forEach { week ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                             week.forEach { date ->
                                 Box(Modifier.weight(1f).heightIn(min = 44.dp), contentAlignment = Alignment.Center) {
                                     if (date != null) {
-                                        val didStudy = date in calendar.studied
+                                        val didStudy = date in displayedCalendar.studied
                                         val isToday = date == today
                                         val label = "${date.format(dateFormat)}${if (isToday) ", hoje" else ""}: ${if (didStudy) "estudo registrado" else if (date > today) "dia futuro" else "sem estudo registrado"}"
                                         Surface(Modifier.fillMaxWidth().aspectRatio(1f).clearAndSetSemantics { contentDescription = label },
@@ -127,7 +135,7 @@ import java.util.Locale
                             }
                         }
                     }
-                }
+                } }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(Modifier.size(10.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
@@ -138,7 +146,7 @@ import java.util.Locale
                         Text("Hoje", fontSize = 12.sp)
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { monthValue = YearMonth.from(today).toString() },
+                    TextButton(onClick = { onNavigate(); monthValue = YearMonth.from(today).toString() },
                         modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Ir para hoje", fontSize = 12.sp) }
                 }
                 Text(if (calendar.studied.isEmpty()) "Nenhum estudo registrado neste mês. Cada pequeno passo aparece aqui."

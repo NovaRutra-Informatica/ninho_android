@@ -31,7 +31,7 @@ class TimerReminder(private val context: Context) {
     private fun pending(key: String = "") = PendingIntent.getBroadcast(context, 410, intent().putExtra("timer_key", key), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     fun sync() = synchronized(alarmLock) {
         // Reread under the alarm lock so delayed callbacks cannot replace a newer timer.
-        val data = StudyStore(context).load()
+        val data = StudyStore(context).load(refreshDailyBackup = false)
         alarms.cancel(pending())
         if (!data.settings.timerReminder || !canNotify()) { notifications.cancel(410); return@synchronized }
         if (delivery.getString("last-delivered", "") == TimerReminderPolicy.key(data.timer)) return@synchronized
@@ -44,7 +44,7 @@ class TimerReminder(private val context: Context) {
     fun canNotify() = notifications.areNotificationsEnabled() && (Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
     @android.annotation.SuppressLint("MissingPermission") // Checked immediately before notify; a concurrent revocation is caught.
     fun deliver(key: String) = synchronized(alarmLock) {
-        val data = StudyStore(context).load()
+        val data = StudyStore(context).load(refreshDailyBackup = false)
         if (!canNotify() || !TimerReminderPolicy.canDeliver(data.timer, key, delivery.getString("last-delivered", "").orEmpty(), data.settings.timerReminder, SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount(context))) return@synchronized
         val channel = NotificationChannel(CHANNEL, "Foco concluído — silencioso", NotificationManager.IMPORTANCE_LOW).apply { setSound(null, null); enableVibration(false); description = "Avisos silenciosos do temporizador. Não interrompem sua música." }
         notifications.createNotificationChannel(channel)
