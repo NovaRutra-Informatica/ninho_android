@@ -29,7 +29,7 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(valida
 
 android {
     namespace = "app.ninho.android"
-    compileSdk = 36
+    compileSdk = 37
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
@@ -74,31 +74,33 @@ val secureTools = configurations.dependencyScope("secureTools")
 configurations.configureEach {
     if (name.startsWith("unified-test-platform-") || name == "androidLintTool") {
         extendsFrom(secureTools.get())
+        resolutionStrategy.force("com.google.guava:guava:33.8.0-jre")
     }
 }
 
 dependencies {
-    add("secureTools", platform("io.netty:netty-bom:4.1.138.Final"))
-    add("secureTools", platform("com.google.protobuf:protobuf-bom:3.25.5"))
+    add("secureTools", platform("io.netty:netty-bom:4.1.141.Final"))
+    add("secureTools", platform("com.google.protobuf:protobuf-bom:3.25.9"))
     constraints {
-        add("secureTools", "org.apache.commons:commons-lang3:3.18.0")
+        add("secureTools", "com.google.guava:guava:33.8.0-jre")
+        add("secureTools", "org.apache.commons:commons-lang3:3.22.0")
         add("secureTools", "org.apache.httpcomponents:httpclient:4.5.14")
-        add("secureTools", "org.bouncycastle:bcprov-jdk18on:1.85")
-        add("secureTools", "org.bouncycastle:bcpkix-jdk18on:1.85")
-        add("secureTools", "org.bouncycastle:bcutil-jdk18on:1.85")
+        add("secureTools", "org.bouncycastle:bcprov-jdk18on:1.87")
+        add("secureTools", "org.bouncycastle:bcpkix-jdk18on:1.87")
+        add("secureTools", "org.bouncycastle:bcutil-jdk18on:1.87")
     }
 
-    val composeBom = platform("androidx.compose:compose-bom:2025.08.00")
+    val composeBom = platform("androidx.compose:compose-bom:2026.09.00")
     implementation(composeBom)
     debugImplementation(composeBom)
-    implementation("androidx.activity:activity-compose:1.11.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("com.google.ai.edge.litertlm:litertlm-android:0.17.1")
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.19.1")
     testImplementation("junit:junit:4.13.2")
     // Real JSON implementation on the host JVM for persisted-profile migration tests.
-    testImplementation("org.json:json:20250517")
+    testImplementation("org.json:json:20260814")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
